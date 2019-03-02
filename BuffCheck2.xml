@@ -11,7 +11,7 @@
         </Anchors>
     </GameTooltip>-->
 
-    <Button name="BuffCheck2ButtonTemplate" virtual="true">
+    <Button name="BuffCheck2ButtonTemplate" virtual="true" enableMouse="true">
         <Size>
             <AbsDimension x="32" y="32"/>
         </Size>
@@ -19,13 +19,13 @@
             <OnLoad>
                 this:RegisterForClicks("RightButtonDown")
             </OnLoad>
-            <OnMouseDown>
-                bc2_send_message("OnMouseDown id: " .. this:GetID())
+            <OnClick>
+                bc2_send_message("OnClick id: " .. this:GetID())
                 bc2_button_onclick(this:GetID())
-            </OnMouseDown>
+            </OnClick>
             <OnEnter>
                 getglobal(this:GetName().."Highlight"):Show()
-                ScubaLoot_ShowTooltip(this:GetID())
+                bc2_ShowTooltip(this:GetID())
             </OnEnter>
             <OnLeave>
                 if not this.lockedHighlight then
@@ -61,8 +61,12 @@
         </Anchors>
         <Scripts>
             <OnLoad>
+                    BuffCheck2_OnLoad()
                     this:SetClampedToScreen(true)
             </OnLoad>
+            <OnEvent>
+                    BuffCheck2_OnEvent(event)
+            </OnEvent>
         </Scripts>
 
         <Frames>
@@ -80,16 +84,16 @@
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button1">
                         <Offset>
-                            <AbsDimension x="0" y="0"/>
+                            <AbsDimension x="36" y="0"/>
                         </Offset>
                     </Anchor>
                 </Anchors>
             </Button>
             <Button name="BuffCheck2Button3" inherits="BuffCheck2ButtonTemplate" id="3">
                 <Anchors>
-                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Frame">
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button2">
                         <Offset>
-                            <AbsDimension x="0" y="0"/>
+                            <AbsDimension x="36" y="0"/>
                         </Offset>
                     </Anchor>
                 </Anchors>
@@ -98,7 +102,7 @@
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button3">
                         <Offset>
-                            <AbsDimension x="0" y="0"/>
+                            <AbsDimension x="36" y="0"/>
                         </Offset>
                     </Anchor>
                 </Anchors>

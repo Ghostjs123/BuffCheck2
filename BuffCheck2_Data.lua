@@ -2,192 +2,227 @@
 bc2_item_buffs = {
     -- agi buffs
     ["Elixir of the Mongoose"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_32" }
+        buff_path = { "Interface\\Icons\\INV_Potion_32" },
+        id = 13452
     },
     ["Elixir of Greater Agility"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_93" }
+        buff_path = { "Interface\\Icons\\INV_Potion_93" },
+        id = 9187
     },
     ["Ground Scorpok Assay"] = {
-        buff_path = { "Interface\\Icons\\Spell_Nature_ForceOfNature" }
+        buff_path = { "Interface\\Icons\\Spell_Nature_ForceOfNature" },
+        id = 8412
     },
 
     -- strength buffs
     ["Juju Power"] = {
-        buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_11" }
+        buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_11" },
+        id = 12451
     },
     ["Elixir of Giants"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_61" }
+        buff_path = { "Interface\\Icons\\INV_Potion_61" },
+        id = 9206
     },
 
     -- attack power buffs
     ["Juju Might"] = {
-        buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_07" }
+        buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_07" },
+        id = 12460
     },
     ["Winterfall Firewater"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_92" }
+        buff_path = { "Interface\\Icons\\INV_Potion_92" },
+        id = 12820
     },
 
     -- armor buffs
     ["Elixir of Superior Defense"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_86" }
+        buff_path = { "Interface\\Icons\\INV_Potion_66" },
+        id = 13445
     },
     ["Elixir of Greater Defense"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_86" }
+        buff_path = { "Interface\\Icons\\INV_Potion_86" },
+        id = 8951
     },
     ["Crystal Ward"] = {
-        buff_path = { "Interface\\Icons\\INV_Misc_Gem_Ruby_02" }
+        buff_path = { "Interface\\Icons\\INV_Misc_Gem_Ruby_02" },
+        id = 11564
     },
     ["Scroll of Protection IV"] = {
-        buff_path = { "Interface\\Icons\\Ability_Warrior_DefensiveStance" }
+        buff_path = { "Interface\\Icons\\Ability_Warrior_DefensiveStance" },
+        id = 10305
     },
     ["Greater Stoneshield Potion"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_69" }
+        buff_path = { "Interface\\Icons\\INV_Potion_69" },
+        id = 13455
     },
 
     -- health buffs
     ["Elixir of Fortitude"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_44" }
+        buff_path = { "Interface\\Icons\\INV_Potion_44" },
+        id = 3825
     },
     ["Spirit of Zanza"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_30" }
+        buff_path = { "Interface\\Icons\\INV_Potion_30" },
+        id = 20079
     },
     ["Lung Juice Cocktail"] = {
-        buff_path = { "Interface\\Icons\\INV_Drink_12" }
+        buff_path = { "Interface\\Icons\\INV_Drink_12" },
+        id = 8411
     },
     ["Gordok Green Grog"] = {
-        buff_path = { "Interface\\Icons\\INV_Drink_03" }
+        buff_path = { "Interface\\Icons\\INV_Drink_03" },
+        id = 18269
     },
     ["Rumsey Rum Black Label"] = {
-        buff_path = { "Interface\\Icons\\INV_Drink_04" }
+        buff_path = { "Interface\\Icons\\INV_Drink_04" },
+        id = 21151
     },
 
     -- misc tank consumes
     ["Gift of Arthas"] = {
-        buff_path = { "Interface\\Icons\\Spell_Shadow_FingerOfDeath" }
+        buff_path = { "Interface\\Icons\\Spell_Shadow_FingerOfDeath" },
+        id = 9088
     },
 
     -- spirit buffs
     ["Kreeg's Stout Beatdown"] = {
-        buff_path = { "Interface\\Icons\\INV_Drink_05" }
+        buff_path = { "Interface\\Icons\\INV_Drink_05" },
+        id = 18284
     },
 
     -- mana regen buffs
     ["Mageblood Potion"] = {
-        buff_path = { "Interface\\Icons\\INV_Drink_45" }
+        buff_path = { "Interface\\Icons\\INV_Drink_45" },
+        id = 20007
     },
 
     -- spell power buffs
     ["Greater Arcane Elixir"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_25" }
+        buff_path = { "Interface\\Icons\\INV_Potion_25" },
+        id = 13454
     },
     ["Elixir of Greater Firepower"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_60" }
+        buff_path = { "Interface\\Icons\\INV_Potion_60" },
+        id = 21546
     },
     ["Elixir of Shadow Power"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_46" }
+        buff_path = { "Interface\\Icons\\INV_Potion_46" },
+        id = 9264
     },
 
     -- flasks
     ["Flask of the Titans"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_62" }
+        buff_path = { "Interface\\Icons\\INV_Potion_62" },
+        id = 13510
     },
     ["Flask of Supreme Power"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_41" }
+        buff_path = { "Interface\\Icons\\INV_Potion_41" },
+        id = 13512
     },
     ["Flask of Distilled Wisdom"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_97" }
-    },
-
-    -- food buffs todo add more
-    ["Tender Wolf Steak"] = {
-        buff_path = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
-            "Interface\\Icons\\Spell_Misc_Food", "Interface\\Icons\\INV_Gauntlets_19",
-            "Interface\\Icons\\Spell_Nature_ManaRegenTotem"}
-    },
-    ["Cooked Glossy Mightfish"] = {
-        buff_path = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
-            "Interface\\Icons\\Spell_Misc_Food", "Interface\\Icons\\INV_Gauntlets_19",
-            "Interface\\Icons\\Spell_Nature_ManaRegenTotem"}
-    },
-    ["Dirge's Kickin' Chimaerok Chops"] = {
-        buff_path = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
-            "Interface\\Icons\\Spell_Misc_Food", "Interface\\Icons\\INV_Gauntlets_19",
-            "Interface\\Icons\\Spell_Nature_ManaRegenTotem"}
-    },
-    ["Smoked Desert Dumplings"] = {
-        buff_path = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
-            "Interface\\Icons\\Spell_Misc_Food", "Interface\\Icons\\INV_Gauntlets_19",
-            "Interface\\Icons\\Spell_Nature_ManaRegenTotem"}
-    },
-    ["Grilled Squid"] = {
-        buff_path = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
-            "Interface\\Icons\\Spell_Misc_Food", "Interface\\Icons\\INV_Gauntlets_19",
-            "Interface\\Icons\\Spell_Nature_ManaRegenTotem"}
-    },
-    ["Nightfin Soup"] = {
-        buff_path = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
-            "Interface\\Icons\\Spell_Misc_Food", "Interface\\Icons\\INV_Gauntlets_19",
-            "Interface\\Icons\\Spell_Nature_ManaRegenTotem"}
+        buff_path = { "Interface\\Icons\\INV_Potion_97" },
+        id = 13511
     },
 
     -- zone specific items
         -- jujus
     ["Juju Chill"] = {
-        buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_09" }
+        buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_09" },
+        id = 12457
     },
     ["Juju Ember"] = {
-        buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_15" }
+        buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_15" },
+        id = 12455
     },
         -- greater prot pots
     ["Greater Shadow Protection Potion"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_23" }
+        buff_path = { "Interface\\Icons\\INV_Potion_23" },
+        id = 13459
     },
     ["Greater Fire Protection Potion"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_24" }
+        buff_path = { "Interface\\Icons\\INV_Potion_24" },
+        id = 13457
     },
     ["Greater Nature Protection Potion"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_22" }
+        buff_path = { "Interface\\Icons\\INV_Potion_22" },
+        id = 13458
     },
     ["Greater Arcane Protection Potion"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_83" }
+        buff_path = { "Interface\\Icons\\INV_Potion_83" },
+        id = 13461
     },
     ["Greater Frost Protection Potion"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_20" }
+        buff_path = { "Interface\\Icons\\INV_Potion_20" },
+        id = 13456
     },
         -- other
     ["Frost Oil"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_20" }
+        buff_path = { "Interface\\Icons\\INV_Potion_20" },
+        id = 3829
     },
     ["Elixir of Poison Resistance"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_12" }
+        buff_path = { "Interface\\Icons\\INV_Potion_12" },
+        id = 3386
     },
     ["Swiftness Potion"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_95" }
-    },
-    ["Aqual Quintessence"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_76" }
+        buff_path = { "Interface\\Icons\\INV_Potion_95" },
+        id = 2459
     },
     ["Juju Escape"] = {
-        buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_17" }
+        buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_17" },
+        id = 12459
     },
 
     -- additional consumes (always bad)
     ["Elixir of the Sages"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_29" }
+        buff_path = { "Interface\\Icons\\INV_Potion_29" },
+        id = 13447
     },
     ["Elixir of Brute Force"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_40" }
+        buff_path = { "Interface\\Icons\\INV_Potion_40" },
+        id = 13453
+    }
+}
+
+bc2_food_buffs = {
+    -- food buffs todo add more
+    ["Tender Wolf Steak"] = {
+        buff_path = {"Interface\\Icons\\INV_Misc_MonsterHead_03"},
+        id = 18045
+    },
+    ["Cooked Glossy Mightfish"] = {
+        buff_path = {"Interface\\Icons\\INV_Misc_MonsterHead_03"},
+        id = 13927
+    },
+    ["Dirge's Kickin' Chimaerok Chops"] = {
+        buff_path = {"Interface\\Icons\\INV_Misc_Food_65"},
+        id = 21023
+    },
+    ["Smoked Desert Dumplings"] = {
+        buff_path = {"Interface\\Icons\\INV_Misc_Food_64"},
+        id = 20452
+    },
+    ["Grilled Squid"] = {
+        buff_path = {"Interface\\Icons\\INV_Misc_Fish_13"},
+        id = 13928
+    },
+    ["Nightfin Soup"] = {
+        buff_path = {"Interface\\Icons\\INV_Drink_17"},
+        id = 13931
     }
 }
 
 bc2_sharpening_stones = {
     ["Dense Sharpening Stone"] = {
-        buff_path = { "Interface\\Icons\\INV_Stone_SharpeningStone_05" }
+        buff_path = { "Interface\\Icons\\INV_Stone_SharpeningStone_05" },
+        id = 12404
     },
     ["Elemental Sharpening Stone"] = {
-        buff_path = { "Interface\\Icons\\INV_Stone_02" }
+        buff_path = { "Interface\\Icons\\INV_Stone_02" },
+        id = 18262
     },
     ["Dense Weightstone"] = {
-        buff_path = { "Interface\\Icons\\INV_Stone_Weightstone_05" }
+        buff_path = { "Interface\\Icons\\INV_Stone_Weightstone_05" },
+        id = 12643
     }
 }

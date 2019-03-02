@@ -1,4 +1,4 @@
- #**BuffCheck**
+# **BuffCheck**
 Wow 1.12 addon to monitor consumes
 
 **Usage:**<br/>
@@ -6,7 +6,7 @@ Add each consume using the add command below. The interface will only display an
 the consume when the consume is not active. Right clicking the icon uses the consume. 
 If there is nothing to display the interface will hide itself and show again when a consume falls off.
 
-**Commands**<br/>
+**Commands:**<br/>
 /bc2 **add** {**ItemLink**}
   - adds the linked item to be monitored
 

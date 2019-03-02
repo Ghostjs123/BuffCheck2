@@ -10,105 +10,10 @@ food_buff_textures = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\
 
 --======================================================================================================================
 
-function bc2_OnLoad()
-    this:RegisterEvent("VARIABLES_LOADED")
-    this:RegisterEvent("PLAYER_AURAS_CHANGED")
-    this:RegisterEvent("UNIT_INVENTORY_CHANGED")
-end
-
---======================================================================================================================
-
-function ScubaLoot_OnEvent(event)
-    if(event == "VARIABLES_LOADED") then
-        bc2_init()
-    elseif(event == "PLAYER_AURAS_CHANGED" or event == "UNIT_INVENTORY_CHANGED") then
-        bc2_update_frame()
-    end
-end
-
---======================================================================================================================
-
--- called on "VARIABLES_LOADED"
-
-function bc2_init()
-    if buffcheck2_config["showing"] then
-        if buffcheck2_config["showing"] == true then
-            BuffCheck2Frame:Show()
-        else
-            BuffCheck2Frame:Hide()
-        end
-    else
-        -- set default
-        buffcheck2_config["showing"] = true
-    end
-
-    if buffcheck2_config["locked"] then
-        if buffcheck2_config["locked"] == true then
-            BuffCheck2Frame:SetMovable(true)
-        else
-            BuffCheck2Frame:SetMovable(false)
-        end
-    else
-        -- set default
-        buffcheck2_config["locked"] = false
-    end
-
-    if(table.getn(buffcheck2_saved_consumes) == 0) then
-        if(buffcheck2_config["showing"] == true and buffcheck2_config["locked"] == false) then
-            -- todo figure out if that is the correct path
-            table.insert(buffcheck2_saved_consumes, "Interface\\Icons\\Spell_Nature_WispSplode")
-        end
-    end
-
-    bc2_update_frame()
-end
-
---======================================================================================================================
-
--- called on "PLAYER_AURAS_CHANGED"
-
-function bc2_update_frame()
-    update_current_buffs_on_player()
-    for _, consume in buffcheck2_saved_consumes do
-        local temp_result = bc2_player_has_buff(consume)
-        if temp_result == false then
-            bc2_add_item_to_interface(consume)
-        end
-    end
-end
-
---======================================================================================================================
-
-function bc2_add_item_to_interface(consume)
-    local button, icon
-    local placed = false
-    for i = 1, bc2_button_count do
-        button = getglobal("BuffCheck2Button"..i)
-        if placed == false then
-            if(button:IsVisible() == nil) then
-                icon = getglobal("BuffCheck2Button"..i.."Icon")
-                local texture = bc2_name_to_texture(consume)
-                if texture ~= nil then
-                    icon:SetTexture()
-                    button:Show()
-                else
-                    bc2_send_message("Error - could not find " .. consume .. " in BuffCheck2_Data.lua")
-                end
-                placed = true
-            end
-        else
-            -- hide the rest of the buttons
-            button:Hide()
-        end
-    end
-end
-
---======================================================================================================================
-
 SlashCmdList["SLASH_BUFFCHECK2"] = function() end
 
-SLASH_BUFFCHECK1, SLASH_BUFFCHECK2 = "/bc2", "/buffcheck2"
-function SlashCmdList.BUFFCHECK(args)
+SLASH_BUFFCHECK1, SLASH_BUFFCHECK2, SLASH_BUFFCHECK3 = "/bc2", "/buffcheck2", "/bw2" -- added bw2 bc i keep misstyping it
+function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it doesnt work, doesnt like numbers?
 
     if(args == "") then
         -- print default usage
@@ -133,10 +38,10 @@ function SlashCmdList.BUFFCHECK(args)
         else
             bc2_remove_item_from_saved_list(item_name)
         end
-    elseif(string.find(args, "lock") ~= nil) then
-        bc2_lock_frame()
     elseif(string.find(args, "unlock") ~= nil) then
         bc2_unlock_frame()
+    elseif(string.find(args, "lock") ~= nil) then
+        bc2_lock_frame()
     elseif(string.find(args, "show") ~= nil) then
         bc2_show_frame()
     elseif(string.find(args, "hide") ~= nil) then
@@ -145,6 +50,85 @@ function SlashCmdList.BUFFCHECK(args)
         bc2_test()
     else
         bc2_send_message("Unknown arguments, to show usage type /bc2")
+    end
+end
+
+--======================================================================================================================
+
+function BuffCheck2_OnLoad()
+    this:RegisterEvent("VARIABLES_LOADED")
+    this:RegisterEvent("PLAYER_AURAS_CHANGED")
+    this:RegisterEvent("UNIT_INVENTORY_CHANGED")
+end
+
+--======================================================================================================================
+
+function BuffCheck2_OnEvent(event)
+    if(event == "VARIABLES_LOADED") then
+        bc2_init()
+    elseif(event == "PLAYER_AURAS_CHANGED" or event == "UNIT_INVENTORY_CHANGED") then
+        bc2_update_frame()
+    end
+end
+
+--======================================================================================================================
+
+-- called on "VARIABLES_LOADED"
+
+function bc2_init()
+    if buffcheck2_config["showing"] then
+        if buffcheck2_config["showing"] == true then
+            bc2_show_frame()
+        else
+            bc2_hide_frame()
+        end
+    else
+        -- set default
+        buffcheck2_config["showing"] = true
+    end
+
+    if buffcheck2_config["locked"] then
+        if buffcheck2_config["locked"] == true then
+            bc2_lock_frame()
+        else
+            bc2_unlock_frame()
+        end
+    else
+        -- set default
+        buffcheck2_config["locked"] = false
+    end
+
+    if(table.getn(buffcheck2_saved_consumes) == 0) then
+        if(buffcheck2_config["showing"] == true and buffcheck2_config["locked"] == false) then
+            table.insert(buffcheck2_saved_consumes, "Interface\\Icons\\Spell_Nature_WispSplode")
+        end
+    end
+
+    bc2_update_frame()
+    bc2_send_message("BuffCheck2 - Init successful")
+end
+
+--======================================================================================================================
+
+-- called on "PLAYER_AURAS_CHANGED"
+
+function bc2_update_frame()
+    update_current_buffs_on_player()
+    for i = 1, bc2_button_count do
+        local button = getglobal("BuffCheck2Button"..i)
+        button:Hide()
+    end
+    if(table.getn(buffcheck2_saved_consumes) == 2) then
+        if(buffcheck2_saved_consumes[1] == "Interface\\Icons\\Spell_Nature_WispSplode") then
+            table.remove(buffcheck2_saved_consumes, 1)
+        end
+    elseif(table.getn(buffcheck2_saved_consumes) == 0) then
+        table.insert(buffcheck2_saved_consumes, "Interface\\Icons\\Spell_Nature_WispSplode")
+    end
+    for _, consume in buffcheck2_saved_consumes do
+        if bc2_player_has_buff(consume) == false then
+            bc2_add_item_to_interface(consume)
+        end
     end
 end
 
@@ -160,6 +144,9 @@ function bc2_add_item_to_saved_list(item_name)
     end
 
     local bufftexture = bc2_item_buffs[item_name]
+    if bufftexture == nil then
+        bufftexture = bc2_food_buffs[item_name]
+    end
     if bufftexture then
         if contains then
             bc2_send_message(tostring(item_name) .. " is already added")
@@ -173,6 +160,8 @@ function bc2_add_item_to_saved_list(item_name)
     end
 end
 
+--======================================================================================================================
+
 function bc2_remove_item_from_saved_list(item_name)
     local contains = false
     for _, consume in buffcheck2_saved_consumes do
@@ -183,6 +172,9 @@ function bc2_remove_item_from_saved_list(item_name)
     end
 
     local bufftexture = bc2_item_buffs[item_name]
+    if bufftexture == nil then
+        bufftexture = bc2_food_buffs[item_name]
+    end
     if bufftexture then
         if contains == false then
             bc2_send_message(tostring(item_name) .. " is not added")
@@ -201,14 +193,12 @@ end
 function bc2_lock_frame()
     buffcheck2_config["locked"] = true
     BuffCheck2Frame:SetMovable(false)
-    bc2_send_message(tostring(BuffCheck2Frame:IsMovable()))
     bc2_send_message("Interface locked")
 end
 
 function bc2_unlock_frame()
     buffcheck2_config["locked"] = false
     BuffCheck2Frame:SetMovable(true)
-    bc2_send_message(tostring(BuffCheck2Frame:IsMovable()))
     bc2_send_message("Interface unlocked")
 end
 
@@ -217,12 +207,22 @@ end
 function bc2_show_frame()
     buffcheck2_config["showing"] = true
     BuffCheck2Frame:Show()
+    local button
+    for i = 1, bc2_button_count do
+        button = getglobal("BuffCheck2Button"..i)
+        button:Show()
+    end
     bc2_send_message("Interface showing")
 end
 
 function bc2_hide_frame()
     buffcheck2_config["showing"] = false
     BuffCheck2Frame:Hide()
+    local button
+    for i = 1, bc2_button_count do
+        button = getglobal("BuffCheck2Button"..i)
+        button:Hide()
+    end
     bc2_send_message("Interface hidden")
 end
 
@@ -283,11 +283,23 @@ function bc2_texture_to_name(texture)
         end
     end
 
+    for spell_name, spell_info in bc2_food_buffs do
+        if(bc2_has_value(spell_info.buff_path, texture)) then
+            return spell_name
+        end
+    end
+
     return ""
 end
 
 function bc2_name_to_texture(name)
     for spell_name, spell_info in bc2_item_buffs do
+        if(spell_name == name) then
+            return spell_info.buff_path
+        end
+    end
+
+    for spell_name, spell_info in bc2_food_buffs do
         if(spell_name == name) then
             return spell_info.buff_path
         end
@@ -332,7 +344,7 @@ end
 -- quick function to print a msg to the chat log
 
 function bc2_send_message(message)
-    DEFAULT_CHAT_FRAME:AddMessage(message)
+    DEFAULT_CHAT_FRAME:AddMessage(tostring(message))
 end
 
 --======================================================================================================================
@@ -343,7 +355,7 @@ function bc2_tprint(tbl, indent)
         local formatting = string.rep("  ", indent) .. k .. ": "
         if type(v) == "table" then
             bc2_send_message(formatting)
-            tprint(v, indent+1)
+            bc2_tprint(v, indent+1)
         elseif type(v) == 'boolean' then
             bc2_send_message(formatting .. tostring(v))
         else
@@ -355,7 +367,22 @@ end
 --======================================================================================================================
 
 function bc2_test()
-    bc2_tprint(buffcheck2_saved_consumes)
+    --bc2_tprint(buffcheck2_saved_consumes)
+    bc2_send_message(bc2_item_buffs["Swiftness Potion"])
+    bc2_send_message(bc2_item_buffs["Swiftness Potion"].id)
+    bc2_send_message(bc2_item_buffs["Swiftness Potion"].buff_path)
+    bc2_send_message(bc2_item_buffs["Swiftness Potion"].buff_path[1])
+end
+
+--======================================================================================================================
+
+function bc2_GetNameByID(id)
+    local name, _, quality, _, _, _, _, _, texture = GetItemInfo(id)
+    if(quality == nil or quality < 0 or quality > 7) then
+        quality = 1
+        DEFAULT_CHAT_FRAME:AddMessage("BuffCheck2 - Could not find quality for " .. tostring(itemLink))
+    end
+    return name, texture, quality
 end
 
 --======================================================================================================================
@@ -363,6 +390,37 @@ end
 --======================================================================================================================
 
 -- GUI specific functions
+
+function bc2_add_item_to_interface(consume)
+    local button, icon
+    if consume ~= "Interface\\Icons\\Spell_Nature_WispSplode" then
+        for i = 1, bc2_button_count do
+            button = getglobal("BuffCheck2Button"..i)
+            if(button:IsShown() == nil) then
+                icon = getglobal("BuffCheck2Button"..i.."Icon")
+                local texture
+                if bc2_item_buffs[consume] then
+                    texture = bc2_item_buffs[consume].buff_path[1]
+                elseif bc2_food_buffs[consume] then
+                    texture = bc2_food_buffs[consume].buff_path[1]
+                end
+                if texture then
+                    icon:SetTexture(texture)
+                    button:Show()
+                    bc2_send_message("set id: " .. i .. " to " .. consume)
+                else
+                    bc2_send_message("Error in bc2_add_item_to_interface with consume: " .. consume)
+                end
+                return
+            end
+        end
+    else
+        button = getglobal("BuffCheck2Button1")
+        icon = getglobal("BuffCheck2Button1Icon")
+        icon:SetTexture(consume)
+        button:Show()
+    end
+end
 
 function bc2_button_onclick(id)
     local consume = buffcheck2_saved_consumes[id]
@@ -372,7 +430,7 @@ function bc2_button_onclick(id)
         for j = 1, numberOfSlots do
             local itemLink = GetContainerItemLink(i, j)
             if(itemLink ~= nil) then
-                local itemname = bc3_item_link_to_item_name(itemLink)
+                local itemname = bc2_item_link_to_item_name(itemLink)
                 if itemname == consume then
                     -- todo test this
                     --UseContainerItem(i, j)
@@ -381,6 +439,19 @@ function bc2_button_onclick(id)
                 end
             end
         end
+    end
+    bc2_send_message("Could not find " .. consume .. " in your inventory")
+end
+
+function bc2_ShowTooltip(id)
+    local consume = buffcheck2_saved_consumes[id]
+    consume = bc2_item_buffs[consume]
+
+    if consume then
+        local _, link = GetItemInfo(consume.id)
+        GameTooltip:SetOwner(getglobal("BuffCheck2Button"..id), "ANCHOR_BOTTOMRIGHT")
+        GameTooltip:SetHyperlink(link)
+        GameTooltip:Show()
     end
 end
 
