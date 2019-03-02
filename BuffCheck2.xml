@@ -1,0 +1,110 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+    <Script file="BuffCheck2.lua"/>
+
+    <!--<GameTooltip name="VCB_BF_Tooltip" frameStrata="TOOLTIP" hidden="false" parent="UIParent" inherits="GameTooltipTemplate">
+        <Anchors>
+            <Anchor point="BOTTOM" relativePoint="TOP">
+                <Offset><AbsDimension x="0" y="100"/></Offset>
+            </Anchor>
+        </Anchors>
+    </GameTooltip>-->
+
+    <Button name="BuffCheck2ButtonTemplate" virtual="true">
+        <Size>
+            <AbsDimension x="32" y="32"/>
+        </Size>
+        <Scripts>
+            <OnLoad>
+                this:RegisterForClicks("RightButtonDown")
+            </OnLoad>
+            <OnMouseDown>
+                bc2_send_message("OnMouseDown id: " .. this:GetID())
+                bc2_button_onclick(this:GetID())
+            </OnMouseDown>
+            <OnEnter>
+                getglobal(this:GetName().."Highlight"):Show()
+                ScubaLoot_ShowTooltip(this:GetID())
+            </OnEnter>
+            <OnLeave>
+                if not this.lockedHighlight then
+                    getglobal(this:GetName().."Highlight"):Hide()
+                end
+                GameTooltip:Hide()
+            </OnLeave>
+        </Scripts>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture name="$parentIcon"/>
+            </Layer>
+            <Layer level="BACKGROUND">
+                <Texture name="$parentHighlight" file="Interface\QuestFrame\UI-QuestLogTitleHighlight" hidden="false" alphaMode="ADD">
+                    <Size>
+                        <AbsDimension x="32" y="32"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" relativeTo="$parentIcon"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+    </Button>
+
+    <Frame name="BuffCheck2Frame" toplevel="true" movable="true" parent="UIParent" enableMouse="true" hidden="true">
+        <TitleRegion setAllPoints="true"/>
+        <Size>
+            <AbsDimension x="320" y="32" />
+        </Size>
+        <Anchors>
+            <Anchor point="CENTER" />
+        </Anchors>
+        <Scripts>
+            <OnLoad>
+                    this:SetClampedToScreen(true)
+            </OnLoad>
+        </Scripts>
+
+        <Frames>
+
+            <Button name="BuffCheck2Button1" inherits="BuffCheck2ButtonTemplate" id="1">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Frame">
+                        <Offset>
+                            <AbsDimension x="0" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button2" inherits="BuffCheck2ButtonTemplate" id="2">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button1">
+                        <Offset>
+                            <AbsDimension x="0" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button3" inherits="BuffCheck2ButtonTemplate" id="3">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Frame">
+                        <Offset>
+                            <AbsDimension x="0" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button4" inherits="BuffCheck2ButtonTemplate" id="4">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button3">
+                        <Offset>
+                            <AbsDimension x="0" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+
+
+        </Frames>
+    </Frame>
+</Ui>
