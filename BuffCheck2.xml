@@ -16,12 +16,11 @@
                 GameTooltip:Hide()
             </OnLoad>
             <OnClick>
-                bc2_send_message("OnClick id: " .. this:GetID())
                 bc2_button_onclick(this:GetID())
             </OnClick>
             <OnEnter>
                 getglobal(this:GetName().."Highlight"):Show()
-                bc2_ShowTooltip(this:GetID())
+                bc2_show_tooltip(this:GetID())
             </OnEnter>
             <OnLeave>
                 if not this.lockedHighlight then
@@ -47,7 +46,7 @@
         </Layers>
     </Button>
 
-    <Frame name="BuffCheck2Frame" toplevel="true" parent="UIParent" enableMouse="true" hidden="false">
+    <Frame name="BuffCheck2Frame" toplevel="true" movable="true" parent="UIParent" enableMouse="true" hidden="false">
         <TitleRegion setAllPoints="true"/>
         <Size>
             <AbsDimension x="54" y="54" />
@@ -73,7 +72,6 @@
         <Scripts>
             <OnLoad>
                     BuffCheck2_OnLoad()
-                    this:SetClampedToScreen(true)
             </OnLoad>
             <OnEvent>
                     BuffCheck2_OnEvent(event)

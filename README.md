@@ -30,5 +30,9 @@ If there is nothing to display the interface will hide itself and show again whe
 
    - unlocks the interface
 
+/bc2 **clear**
+
+  - clears the list of saved consumes
+
 This addon was made by Kaymon \<Scuba Cops> for the Northdale Vanilla private server. If you find
 any bugs or issues with the addon contact him in game.
