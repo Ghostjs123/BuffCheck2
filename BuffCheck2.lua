@@ -258,7 +258,6 @@ end
 --======================================================================================================================
 
 function bc2_player_has_buff(buffname)
-    bc2_send_message(buffname)
     local bufftexture = bc2_item_buffs[buffname]
     if bufftexture then
         return bc2_has_value(bc2_current_buffs_on_player, bufftexture.buff_path[1])
