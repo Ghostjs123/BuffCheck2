@@ -125,11 +125,14 @@ function bc2_update_frame()
     elseif(table.getn(buffcheck2_saved_consumes) == 0) then
         table.insert(buffcheck2_saved_consumes, "Interface\\Icons\\Spell_Nature_WispSplode")
     end
+    local count = 0
     for _, consume in buffcheck2_saved_consumes do
         if bc2_player_has_buff(consume) == false then
             bc2_add_item_to_interface(consume)
+            count = count + 1
         end
     end
+    BuffCheck2Frame:SetWidth(54 + (count-1) * 36)
 end
 
 --======================================================================================================================
@@ -192,13 +195,25 @@ end
 
 function bc2_lock_frame()
     buffcheck2_config["locked"] = true
-    BuffCheck2Frame:SetMovable(false)
+    BuffCheck2Frame:EnableMouse(false)
+    local backdrop = BuffCheck2Frame:GetBackdrop()
+    backdrop["insets"] = { top = 0, bottom = 0, right = 0, left = 0 }
+    backdrop["tile"] = true
+    backdrop["tileSize"] = 1
+    backdrop["edgeSize"] = 1
+    BuffCheck2Frame:SetBackdrop(backdrop)
     bc2_send_message("Interface locked")
 end
 
 function bc2_unlock_frame()
     buffcheck2_config["locked"] = false
-    BuffCheck2Frame:SetMovable(true)
+    BuffCheck2Frame:EnableMouse(true)
+    local backdrop = BuffCheck2Frame:GetBackdrop()
+    backdrop["insets"] = { top = 12, bottom = 11, right = 12, left = 11 }
+    backdrop["tile"] = true
+    backdrop["tileSize"] = 32
+    backdrop["edgeSize"] = 32
+    BuffCheck2Frame:SetBackdrop(backdrop)
     bc2_send_message("Interface unlocked")
 end
 
@@ -376,13 +391,9 @@ end
 
 --======================================================================================================================
 
-function bc2_GetNameByID(id)
-    local name, _, quality, _, _, _, _, _, texture = GetItemInfo(id)
-    if(quality == nil or quality < 0 or quality > 7) then
-        quality = 1
-        DEFAULT_CHAT_FRAME:AddMessage("BuffCheck2 - Could not find quality for " .. tostring(itemLink))
-    end
-    return name, texture, quality
+function bc2_GetTextureByID(id)
+    local _, _, _, _, _, _, _, _, texture = GetItemInfo(id)
+    return texture
 end
 
 --======================================================================================================================
@@ -400,14 +411,13 @@ function bc2_add_item_to_interface(consume)
                 icon = getglobal("BuffCheck2Button"..i.."Icon")
                 local texture
                 if bc2_item_buffs[consume] then
-                    texture = bc2_item_buffs[consume].buff_path[1]
+                    texture = bc2_GetTextureByID(bc2_item_buffs[consume].id)
                 elseif bc2_food_buffs[consume] then
-                    texture = bc2_food_buffs[consume].buff_path[1]
+                    texture = bc2_GetTextureByID(bc2_food_buffs[consume].id)
                 end
                 if texture then
                     icon:SetTexture(texture)
                     button:Show()
-                    bc2_send_message("set id: " .. i .. " to " .. consume)
                 else
                     bc2_send_message("Error in bc2_add_item_to_interface with consume: " .. consume)
                 end
@@ -444,8 +454,11 @@ function bc2_button_onclick(id)
 end
 
 function bc2_ShowTooltip(id)
-    local consume = buffcheck2_saved_consumes[id]
-    consume = bc2_item_buffs[consume]
+    local consume = bc2_item_buffs[buffcheck2_saved_consumes[id]]
+
+    if consume == nil then
+        consume = bc2_food_buffs[buffcheck2_saved_consumes[id]]
+    end
 
     if consume then
         local _, link = GetItemInfo(consume.id)

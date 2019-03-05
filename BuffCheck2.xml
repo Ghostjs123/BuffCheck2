@@ -3,14 +3,6 @@
 
     <Script file="BuffCheck2.lua"/>
 
-    <!--<GameTooltip name="VCB_BF_Tooltip" frameStrata="TOOLTIP" hidden="false" parent="UIParent" inherits="GameTooltipTemplate">
-        <Anchors>
-            <Anchor point="BOTTOM" relativePoint="TOP">
-                <Offset><AbsDimension x="0" y="100"/></Offset>
-            </Anchor>
-        </Anchors>
-    </GameTooltip>-->
-
     <Button name="BuffCheck2ButtonTemplate" virtual="true" enableMouse="true">
         <Size>
             <AbsDimension x="32" y="32"/>
@@ -18,6 +10,10 @@
         <Scripts>
             <OnLoad>
                 this:RegisterForClicks("RightButtonDown")
+                if not this.lockedHighlight then
+                    getglobal(this:GetName().."Highlight"):Hide()
+                end
+                GameTooltip:Hide()
             </OnLoad>
             <OnClick>
                 bc2_send_message("OnClick id: " .. this:GetID())
@@ -51,14 +47,29 @@
         </Layers>
     </Button>
 
-    <Frame name="BuffCheck2Frame" toplevel="true" movable="true" parent="UIParent" enableMouse="true" hidden="true">
+    <Frame name="BuffCheck2Frame" toplevel="true" parent="UIParent" enableMouse="true" hidden="false">
         <TitleRegion setAllPoints="true"/>
         <Size>
-            <AbsDimension x="320" y="32" />
+            <AbsDimension x="54" y="54" />
         </Size>
         <Anchors>
             <Anchor point="CENTER" />
         </Anchors>
+        <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border"
+                  tile="true">
+            <BackgroundInsets>
+                <AbsInset left="11" right="12" top="12" bottom="11" />
+                <Size>
+                    <AbsDimension x="54" y="54" />
+                </Size>
+            </BackgroundInsets>
+            <TileSize>
+                <AbsValue val="32" />
+            </TileSize>
+            <EdgeSize>
+                <AbsValue val="32" />
+            </EdgeSize>
+        </Backdrop>
         <Scripts>
             <OnLoad>
                     BuffCheck2_OnLoad()
@@ -75,7 +86,7 @@
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="BuffCheck2Frame">
                         <Offset>
-                            <AbsDimension x="0" y="0"/>
+                            <AbsDimension x="12" y="-12"/>
                         </Offset>
                     </Anchor>
                 </Anchors>
