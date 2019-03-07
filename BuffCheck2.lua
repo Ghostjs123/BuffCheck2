@@ -149,6 +149,9 @@ function bc2_add_item_to_saved_list(item_name)
     if bufftexture == nil then
         bufftexture = bc2_food_buffs[item_name]
     end
+    if bufftexture == nil then
+        bufftexture = bc2_weapon_buffs[item_name]
+    end
     if bufftexture then
         if contains then
             bc2_send_message(tostring(item_name) .. " is already added")
@@ -176,6 +179,9 @@ function bc2_remove_item_from_saved_list(item_name)
     local bufftexture = bc2_item_buffs[item_name]
     if bufftexture == nil then
         bufftexture = bc2_food_buffs[item_name]
+    end
+    if bufftexture == nil then
+        bufftexture = bc2_weapon_buffs[item_name]
     end
     if bufftexture then
         if contains == false then
@@ -264,7 +270,6 @@ function bc2_player_has_buff(buffname)
     else
         bufftexture = bc2_food_buffs[buffname]
         if bufftexture then
-            bc2_send_message(bufftexture)
             for _, food_buff_texture in food_buff_textures do
                 -- hopefully there isn't any buffs that share a texture w/ food buffs
                 -- because im not checking the name of the buff here
@@ -278,7 +283,7 @@ function bc2_player_has_buff(buffname)
             if bufftexture then
                 local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _, _, _, _ = GetWeaponEnchantInfo()
                 local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"))
-                local _, _, _, _, _, sType, _, _ = GetItemInfo(item_link_to_item_id(mainHandLink))
+                local _, _, _, _, _, sType, _, _ = GetItemInfo(bc2_item_link_to_item_id(mainHandLink))
                 if hasMainHandEnchant ~= nil then
                     return true
                 end
@@ -377,6 +382,12 @@ end
 
 --======================================================================================================================
 
+function bc2_item_link_to_item_id(itemLink)
+    -- item link format ex: |Hitem:6948:0:0:0:0:0:0:0|h[Hearthstone]|h
+    -- matches anything inside the first 2 :'s ex: |Hitem:6948:0:0:0:0: -> 6948
+    return string.match(itemLink, ":(%d+)")
+end
+
 function bc2_item_link_to_item_name(itemLink)
     -- item link format ex: |Hitem:6948:0:0:0:0:0:0:0|h[Hearthstone]|h
     -- matches anything inside square brackets ex: asdasd[abc]asdasd -> abc
@@ -452,6 +463,8 @@ function bc2_add_item_to_interface(consume)
                     texture = bc2_GetTextureByID(bc2_item_buffs[consume].id)
                 elseif bc2_food_buffs[consume] then
                     texture = bc2_GetTextureByID(bc2_food_buffs[consume].id)
+                elseif bc2_weapon_buffs[consume] then
+                    texture = bc2_GetTextureByID(bc2_weapon_buffs[consume].id)
                 end
                 if texture then
                     icon:SetTexture(texture)
