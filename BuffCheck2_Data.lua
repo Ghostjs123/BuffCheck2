@@ -212,7 +212,7 @@ bc2_food_buffs = {
     }
 }
 
-bc2_sharpening_stones = {
+bc2_weapon_buffs = {
     ["Dense Sharpening Stone"] = {
         id = 12404
     },
@@ -221,5 +221,29 @@ bc2_sharpening_stones = {
     },
     ["Dense Weightstone"] = {
         id = 12643
+    },
+    ["Consecrated Sharpening Stone"] = {
+        id = 23122
+    },
+    ["Blessed Wizard Oil"] = {
+        id = 23123
+    },
+    ["Brilliant Wizard Oil"] = {
+        id = 20749
+    },
+    ["Brilliant Mana Oil"] = {
+        id = 20748
+    },
+    ["Crippling Posion II"] = {
+        id = 3776
+    },
+    ["Deadly Posion V"] = {
+        id = 20844
+    },
+    ["Deadly Posion IV"] = {
+        id = 8985
+    },
+    ["Instant Posion VI"] = {
+        id = 8928
     }
 }

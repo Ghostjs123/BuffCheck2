@@ -274,7 +274,7 @@ function bc2_player_has_buff(buffname)
             end
         else
             -- todo fix this code
-            bufftexture = bc2_sharpening_stones[buffname]
+            bufftexture = bc2_weapon_buffs[buffname]
             if bufftexture then
                 local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _, _, _, _ = GetWeaponEnchantInfo()
                 local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"))

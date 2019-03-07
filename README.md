@@ -6,6 +6,9 @@ Add each consume using the add command below. The interface will only display an
 the consume when the consume is not active. Right clicking the icon uses the consume. 
 If there is nothing to display the interface will hide itself and show again when a consume falls off.
 
+Currently supports most* consumes, food buffs, and weapon buffs. If you find one missing
+feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
+
 **Commands:**<br/>
 /bc2 **add** {**ItemLink**}
   - adds the linked item to be monitored
