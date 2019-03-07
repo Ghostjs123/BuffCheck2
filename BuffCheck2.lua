@@ -279,7 +279,12 @@ function bc2_player_has_buff(buffname)
                 local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _, _, _, _ = GetWeaponEnchantInfo()
                 local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"))
                 local _, _, _, _, _, sType, _, _ = GetItemInfo(item_link_to_item_id(mainHandLink))
-                if(string.sub(sType, 0, 1) == "O") then -- one handed
+                if hasMainHandEnchant ~= nil then
+                    return true
+                end
+                -- saving this code for now, the main issue with it is if the offhand is a shield the
+                -- hasOffHandEnchant will always be nil
+                --[[if(string.sub(sType, 0, 1) == "O") then -- one handed
                     if(hasMainHandEnchant ~= nil and hasOffHandEnchant ~= nil) then
                         return true
                     end
@@ -287,7 +292,7 @@ function bc2_player_has_buff(buffname)
                     if(hasMainHandEnchant ~= nil) then
                         return true
                     end
-                end
+                end]]--
             end
         end
     end
