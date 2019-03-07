@@ -4,7 +4,7 @@ buffcheck2_config = {}
 buffcheck2_saved_consumes = {} -- should contain the actual name of the item, not the buff texture
 bc2_current_consumes = {}
 
-bc2_button_count = 4
+bc2_button_count = 15
 bc2_current_buffs_on_player = {}
 
 food_buff_textures = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",

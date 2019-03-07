@@ -214,15 +214,12 @@ bc2_food_buffs = {
 
 bc2_sharpening_stones = {
     ["Dense Sharpening Stone"] = {
-        buff_path = { "Interface\\Icons\\INV_Stone_SharpeningStone_05" },
         id = 12404
     },
     ["Elemental Sharpening Stone"] = {
-        buff_path = { "Interface\\Icons\\INV_Stone_02" },
         id = 18262
     },
     ["Dense Weightstone"] = {
-        buff_path = { "Interface\\Icons\\INV_Stone_Weightstone_05" },
         id = 12643
     }
 }
