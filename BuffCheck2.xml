@@ -215,6 +215,96 @@
                     </Anchor>
                 </Anchors>
             </Button>
+            <Button name="BuffCheck2Button16" inherits="BuffCheck2ButtonTemplate" id="16">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button15">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button17" inherits="BuffCheck2ButtonTemplate" id="17">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button16">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button18" inherits="BuffCheck2ButtonTemplate" id="18">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button17">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button19" inherits="BuffCheck2ButtonTemplate" id="19">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button18">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button20" inherits="BuffCheck2ButtonTemplate" id="20">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button19">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button21" inherits="BuffCheck2ButtonTemplate" id="21">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button20">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button22" inherits="BuffCheck2ButtonTemplate" id="22">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button21">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button23" inherits="BuffCheck2ButtonTemplate" id="23">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button22">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button24" inherits="BuffCheck2ButtonTemplate" id="24">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button23">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2Button25" inherits="BuffCheck2ButtonTemplate" id="25">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button24">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
 
 
         </Frames>

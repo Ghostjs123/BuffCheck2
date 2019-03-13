@@ -4,7 +4,7 @@ Wow 1.12 addon to monitor consumes
 **Usage:**<br/>
 Add each consume using the add command below. The interface will only display an icon of 
 the consume when the consume is not active. Right clicking the icon uses the consume. 
-If there is nothing to display the interface will hide itself and show again when a consume falls off.
+If there is nothing to display the interface will display a placeholder and update again when a consume falls off.
 
 Currently supports most* consumes, food buffs, and weapon buffs. If you find one missing
 feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
@@ -32,6 +32,10 @@ feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
 /bc2 **unlock**
 
    - unlocks the interface
+   
+/bc2 **scale** {**number**}
+
+   - scales the interface, default is 100
 
 /bc2 **clear**
 

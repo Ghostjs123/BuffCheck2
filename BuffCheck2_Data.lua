@@ -25,7 +25,7 @@ bc2_item_buffs = {
     },
     ["R.O.I.D.S."] = {
         buff_path = { "Interface\\Icons\\Spell_Nature_Strength" },
-        id = 10667
+        id = 8410
     },
 
     -- attack power buffs

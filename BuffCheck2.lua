@@ -4,7 +4,7 @@ buffcheck2_config = {}
 buffcheck2_saved_consumes = {} -- should contain the actual name of the item, not the buff texture
 bc2_current_consumes = {}
 
-bc2_button_count = 15
+bc2_button_count = 25
 bc2_current_buffs_on_player = {}
 
 food_buff_textures = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
@@ -26,6 +26,7 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
         bc2_send_message("unlock - unlocks the frame")
         bc2_send_message("show - shows the frame")
         bc2_send_message("hide - hides the frame")
+        bc2_send_message("scale - scales the frame, default is 100")
         bc2_send_message("clear - clears the saved list of consumes")
     elseif(string.find(args, "add") ~= nil) then
         local item_name = bc2_get_item_name_from_args(args)
@@ -51,6 +52,9 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
         bc2_hide_frame()
     elseif(string.find(args, "clear") ~= nil) then
         bc2_clear_saved_consumes()
+    elseif(string.find(args, "scale") ~= nil) then
+        local scale = string.sub(args, string.match(args, "%d+"))
+        bc2_scale_interface(tonumber(scale))
     elseif(string.find(args, "test") ~= nil) then
         bc2_test()
     else
@@ -101,6 +105,18 @@ function bc2_init()
     else
         -- set default
         buffcheck2_config["locked"] = false
+    end
+
+    if buffcheck2_config["scale"] then
+        BuffCheck2Frame:SetScale(buffcheck2_config["scale"] / 100)
+        BuffCheck2Frame:ClearAllPoints()
+        BuffCheck2Frame:SetPoint("CENTER", "UIParent")
+    else
+        -- set default
+        buffcheck2_config["scale"] = 100
+        BuffCheck2Frame:SetScale(1)
+        BuffCheck2Frame:ClearAllPoints()
+        BuffCheck2Frame:SetPoint("CENTER", "UIParent")
     end
 
     bc2_update_frame()
@@ -517,6 +533,21 @@ function bc2_show_tooltip(id)
         GameTooltip:SetHyperlink(link)
         GameTooltip:Show()
     end
+end
+
+function bc2_scale_interface(scale)
+    local button, highlight
+    for i = 1, bc2_button_count do
+        button = getglobal("BuffCheck2Button"..i)
+        highlight = getglobal("BuffCheck2Button"..i.."Highlight")
+
+    end
+    local map_result = scale / 100
+    BuffCheck2Frame:SetScale(map_result)
+    BuffCheck2Frame:ClearAllPoints()
+    BuffCheck2Frame:SetPoint("CENTER", "UIParent")
+    buffcheck2_config["scale"] = map_result
+    bc2_send_message("scaled to " .. scale)
 end
 
 --======================================================================================================================
