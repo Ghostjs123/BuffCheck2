@@ -23,6 +23,10 @@ bc2_item_buffs = {
         buff_path = { "Interface\\Icons\\INV_Potion_61" },
         id = 9206
     },
+    ["R.O.I.D.S."] = {
+        buff_path = { "Interface\\Icons\\Spell_Nature_Strength" },
+        id = 10667
+    },
 
     -- attack power buffs
     ["Juju Might"] = {
@@ -33,10 +37,14 @@ bc2_item_buffs = {
         buff_path = { "Interface\\Icons\\INV_Potion_92" },
         id = 12820
     },
+    ["Bogling Root"] = {
+        buff_path = { "Interface\\Icons\\Spell_Nature_Strength" },
+        id = 5206
+    },
 
     -- armor buffs
     ["Elixir of Superior Defense"] = {
-        buff_path = { "Interface\\Icons\\INV_Potion_66" },
+        buff_path = { "Interface\\Icons\\INV_Potion_86" },
         id = 13445
     },
     ["Elixir of Greater Defense"] = {
@@ -122,6 +130,24 @@ bc2_item_buffs = {
     ["Flask of Distilled Wisdom"] = {
         buff_path = { "Interface\\Icons\\INV_Potion_97" },
         id = 13511
+    },
+
+    -- valentine's buffs
+    ["Dark Desire"] = {
+        buff_path = { "Interface\\Icons\\INV_ValentinesChocolate04" },
+        id = 22237
+    },
+    ["Very Berry Cream"] = {
+        buff_path = { "Interface\\Icons\\INV_ValentinesChocolate02" },
+        id = 22238
+    },
+    ["Buttermilk Delight"] = {
+        buff_path = { "Interface\\Icons\\INV_ValentinesChocolate01" },
+        id = 22236
+    },
+    ["Sweet Surprise"] = {
+        buff_path = { "Interface\\Icons\\INV_ValentinesChocolate03" },
+        id = 22239
     },
 
     -- zone specific items
