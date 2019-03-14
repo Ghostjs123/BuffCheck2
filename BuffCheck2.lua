@@ -546,7 +546,7 @@ function bc2_scale_interface(scale)
     BuffCheck2Frame:SetScale(map_result)
     BuffCheck2Frame:ClearAllPoints()
     BuffCheck2Frame:SetPoint("CENTER", "UIParent")
-    buffcheck2_config["scale"] = map_result
+    buffcheck2_config["scale"] = scale
     bc2_send_message("scaled to " .. scale)
 end
 
