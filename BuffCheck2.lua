@@ -536,12 +536,6 @@ function bc2_show_tooltip(id)
 end
 
 function bc2_scale_interface(scale)
-    local button, highlight
-    for i = 1, bc2_button_count do
-        button = getglobal("BuffCheck2Button"..i)
-        highlight = getglobal("BuffCheck2Button"..i.."Highlight")
-
-    end
     local map_result = scale / 100
     BuffCheck2Frame:SetScale(map_result)
     BuffCheck2Frame:ClearAllPoints()
