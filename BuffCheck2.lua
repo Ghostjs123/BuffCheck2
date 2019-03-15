@@ -7,6 +7,8 @@ bc2_current_consumes = {}
 bc2_button_count = 25
 bc2_current_buffs_on_player = {}
 
+bc2_showed_already = false
+
 food_buff_textures = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
     "Interface\\Icons\\INV_Gauntlets_19", "Interface\\Icons\\Spell_Nature_ManaRegenTotem"}
 
@@ -68,6 +70,7 @@ function BuffCheck2_OnLoad()
     this:RegisterEvent("VARIABLES_LOADED")
     this:RegisterEvent("PLAYER_AURAS_CHANGED")
     this:RegisterEvent("UNIT_INVENTORY_CHANGED")
+    this:RegisterEvent("PARTY_MEMBERS_CHANGED")
 end
 
 --======================================================================================================================
@@ -77,6 +80,8 @@ function BuffCheck2_OnEvent(event)
         bc2_init()
     elseif(event == "PLAYER_AURAS_CHANGED" or event == "UNIT_INVENTORY_CHANGED") then
         bc2_update_frame()
+    elseif(event == "PARTY_MEMBERS_CHANGED") then
+        bc2_check_group_update()
     end
 end
 
@@ -85,26 +90,17 @@ end
 -- called on "VARIABLES_LOADED"
 
 function bc2_init()
-    if buffcheck2_config["showing"] then
-        if buffcheck2_config["showing"] == true then
-            bc2_show_frame()
-        else
-            bc2_hide_frame()
-        end
+
+    if buffcheck2_config["locked"] == true then
+        bc2_lock_frame()
     else
-        -- set default
-        buffcheck2_config["showing"] = true
+        bc2_unlock_frame()
     end
 
-    if buffcheck2_config["locked"] then
-        if buffcheck2_config["locked"] == true then
-            bc2_lock_frame()
-        else
-            bc2_unlock_frame()
-        end
+    if buffcheck2_config["showing"] == true then
+        bc2_show_frame()
     else
-        -- set default
-        buffcheck2_config["locked"] = false
+        bc2_hide_frame()
     end
 
     if buffcheck2_config["scale"] then
@@ -118,6 +114,8 @@ function bc2_init()
         BuffCheck2Frame:ClearAllPoints()
         BuffCheck2Frame:SetPoint("CENTER", "UIParent")
     end
+
+    bc2_showed_already = false
 
     bc2_update_frame()
     bc2_send_message("BuffCheck2 - Init successful")
@@ -223,7 +221,7 @@ function bc2_lock_frame()
     backdrop["tileSize"] = 1
     backdrop["edgeSize"] = 1
     BuffCheck2Frame:SetBackdrop(backdrop)
-    bc2_send_message("Interface locked")
+    bc2_send_message("BuffCheck2 - Interface locked")
 end
 
 function bc2_unlock_frame()
@@ -235,7 +233,7 @@ function bc2_unlock_frame()
     backdrop["tileSize"] = 32
     backdrop["edgeSize"] = 32
     BuffCheck2Frame:SetBackdrop(backdrop)
-    bc2_send_message("Interface unlocked")
+    bc2_send_message("BuffCheck2 - Interface unlocked")
 end
 
 --======================================================================================================================
@@ -243,23 +241,14 @@ end
 function bc2_show_frame()
     buffcheck2_config["showing"] = true
     BuffCheck2Frame:Show()
-    local button
-    for i = 1, bc2_button_count do
-        button = getglobal("BuffCheck2Button"..i)
-        button:Show()
-    end
-    bc2_send_message("Interface showing")
+    bc2_send_message("BuffCheck2 - Interface showing")
+    bc2_update_frame()
 end
 
 function bc2_hide_frame()
     buffcheck2_config["showing"] = false
     BuffCheck2Frame:Hide()
-    local button
-    for i = 1, bc2_button_count do
-        button = getglobal("BuffCheck2Button"..i)
-        button:Hide()
-    end
-    bc2_send_message("Interface hidden")
+    bc2_send_message("BuffCheck2 - Interface hidden")
 end
 
 --======================================================================================================================
@@ -274,6 +263,15 @@ end
 function bc2_clear_current_consumes()
     for k in pairs(bc2_current_consumes) do
         bc2_current_consumes[k] = nil
+    end
+end
+
+--======================================================================================================================
+
+function bc2_check_group_update()
+    if(UnitInRaid("player") == 1 and bc2_showed_already == false) then
+        bc2_show_frame()
+        bc2_showed_already = true
     end
 end
 
@@ -452,6 +450,8 @@ function bc2_test()
     update_current_buffs_on_player()
     bc2_send_message("bc2_current_buffs_on_player")
     bc2_tprint(bc2_current_buffs_on_player)
+
+    bc2_send_message(UnitInRaid("player"))
 end
 
 --======================================================================================================================
