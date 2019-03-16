@@ -107,12 +107,6 @@ function bc2_init()
         BuffCheck2Frame:SetScale(buffcheck2_config["scale"] / 100)
         BuffCheck2Frame:ClearAllPoints()
         BuffCheck2Frame:SetPoint("CENTER", "UIParent")
-    else
-        -- set default
-        buffcheck2_config["scale"] = 100
-        BuffCheck2Frame:SetScale(1)
-        BuffCheck2Frame:ClearAllPoints()
-        BuffCheck2Frame:SetPoint("CENTER", "UIParent")
     end
 
     bc2_showed_already = false
@@ -297,9 +291,12 @@ function bc2_player_has_buff(buffname)
             if bufftexture then
                 local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _, _, _, _ = GetWeaponEnchantInfo()
                 local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"))
-                local _, _, _, _, _, sType, _, _ = GetItemInfo(bc2_item_link_to_item_id(mainHandLink))
-                if hasMainHandEnchant ~= nil then
-                    return true
+                local id = bc2_item_link_to_item_id(mainHandLink)
+                if id ~= nil then
+                    local _, _, _, _, _, sType, _, _ = GetItemInfo(id)
+                    if hasMainHandEnchant ~= nil then
+                        return true
+                    end
                 end
                 -- saving this code for now, the main issue with it is if the offhand is a shield the
                 -- hasOffHandEnchant will always be nil
@@ -399,20 +396,32 @@ end
 function bc2_item_link_to_item_id(itemLink)
     -- item link format ex: |Hitem:6948:0:0:0:0:0:0:0|h[Hearthstone]|h
     -- matches anything inside the first 2 :'s ex: |Hitem:6948:0:0:0:0: -> 6948
-    return string.match(itemLink, ":(%d+)")
+    if itemLink ~= nil then
+        return string.match(itemLink, ":(%d+)")
+    else
+        return nil
+    end
 end
 
 function bc2_item_link_to_item_name(itemLink)
     -- item link format ex: |Hitem:6948:0:0:0:0:0:0:0|h[Hearthstone]|h
     -- matches anything inside square brackets ex: asdasd[abc]asdasd -> abc
-    return string.match(itemLink, "%[(.+)%]")
+    if itemLink ~= nil then
+        return string.match(itemLink, "%[(.+)%]")
+    else
+        return nil
+    end
 end
 
 function bc2_get_item_name_from_args(args)
     -- ideal args format "add [Elixir of the Mongoose]
     -- matches anything inside square brackets ex: asdasd[abc]asdasd -> abc
     -- copy paste of bc2_item_link_to_item_name, keeping it seperate in case the pattern needs changed later
-    return string.match(args, "%[(.+)%]")
+    if args ~= nil then
+        return string.match(args, "%[(.+)%]")
+    else
+        return nil
+    end
 end
 
 --======================================================================================================================
@@ -450,8 +459,6 @@ function bc2_test()
     update_current_buffs_on_player()
     bc2_send_message("bc2_current_buffs_on_player")
     bc2_tprint(bc2_current_buffs_on_player)
-
-    bc2_send_message(UnitInRaid("player"))
 end
 
 --======================================================================================================================
