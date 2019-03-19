@@ -5,7 +5,6 @@ buffcheck2_saved_consumes = {} -- should contain the actual name of the item, no
 bc2_current_consumes = {}
 
 bc2_button_count = 25
-bc2_current_buffs_on_player = {}
 
 bc2_showed_already = false
 
@@ -120,7 +119,6 @@ end
 -- called on "PLAYER_AURAS_CHANGED"
 
 function bc2_update_frame()
-    update_current_buffs_on_player()
     bc2_clear_current_consumes()
     for i = 1, bc2_button_count do
         local button = getglobal("BuffCheck2Button"..i)
@@ -274,7 +272,11 @@ end
 function bc2_player_has_buff(buffname)
     local bufftexture = bc2_item_buffs[buffname]
     if bufftexture then
-        return bc2_has_value(bc2_current_buffs_on_player, bufftexture.buff_path[1])
+        if bufftexture.buff_name ~= nil then
+            return bc2_is_buff_present(bufftexture.buff_path[1], bufftexture.buff_name)
+        else
+            return bc2_is_buff_present(bufftexture.buff_path[1])
+        end
     else
         bufftexture = bc2_food_buffs[buffname]
         if bufftexture then
@@ -286,16 +288,31 @@ function bc2_player_has_buff(buffname)
                 end
             end
         else
-            -- todo fix this code
             bufftexture = bc2_weapon_buffs[buffname]
             if bufftexture then
                 local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _, _, _, _ = GetWeaponEnchantInfo()
                 local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"))
-                local id = bc2_item_link_to_item_id(mainHandLink)
-                if id ~= nil then
-                    local _, _, _, _, _, sType, _, _ = GetItemInfo(id)
-                    if hasMainHandEnchant ~= nil then
-                        return true
+                local offHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("SecondaryHandSlot"))
+                local id1 = bc2_item_link_to_item_id(mainHandLink)
+                local id2 = bc2_item_link_to_item_id(offHandLink)
+                if id1 ~= nil then
+                    local _, _, _, _, _, sType, _, _ = GetItemInfo(id1)
+                    if(string.sub(sType, 0, 1) == "O") then
+                        if hasMainHandEnchant ~= nil then
+                            return true
+                        end
+                    elseif(string.sub(sType, 0, 1) == "T") then -- two handed
+                        if(hasMainHandEnchant ~= nil) then
+                            return true
+                        end
+                    end
+                end
+                if id2 ~= nil then
+                    local _, _, _, _, _, sType, _, _ = GetItemInfo(id2)
+                    if(string.sub(sType, 0, 1) == "O") then
+                        if hasOffHandEnchant ~= nil then
+                            return true
+                        end
                     end
                 end
                 -- saving this code for now, the main issue with it is if the offhand is a shield the
@@ -317,8 +334,7 @@ end
 
 --======================================================================================================================
 
-function bc2_is_buff_present(texture)
-
+function bc2_is_buff_present(texture, spell_name)
     local x
     local bufftexture
 
@@ -328,33 +344,18 @@ function bc2_is_buff_present(texture)
         if bufftexture == nil then
             break
         elseif texture == bufftexture then
-            return true
+            if spell_name ~= nil and spell_name ~= "" then
+                BuffCheck2Tooltip:SetPlayerBuff(x - 1)
+                local name = BuffCheck2TooltipTextLeft1:GetText()
+                if name == spell_name then
+                    return true
+                end
+            else
+                return true
+            end
         end
     end
     return false
-end
-
---======================================================================================================================
-
-function update_current_buffs_on_player()
-    local buffs = {}
-
-        for x = 1, 32 do
-            local bufftexture = UnitBuff("player", x)
-
-            if bufftexture == nil then
-                break
-            else
-                -- needed to differentiate btwn buffs w/ the same texture like gspp and demon armor
-                -- note: will only return the buffname if it is in BuffCheck2_Data.lua
-                local buffname = bc2_texture_to_name(bufftexture)
-                if buffname ~= "" then
-                    table.insert(buffs, bufftexture)
-                end
-            end
-        end
-
-    bc2_current_buffs_on_player = buffs
 end
 
 --======================================================================================================================
@@ -451,21 +452,39 @@ end
 
 --======================================================================================================================
 
+function bc2_GetTextureByID(id)
+    local _, _, _, _, _, _, _, _, texture = GetItemInfo(id)
+    return texture
+end
+
+--======================================================================================================================
+
+function bc2_get_item_count_in_bags(consume)
+    local count = 0
+    -- note: bags start at index 0 (Backpack)
+    for i = 0, 4 do
+        local numberOfSlots = GetContainerNumSlots(i)
+        for j = 1, numberOfSlots do
+            local itemLink = GetContainerItemLink(i, j)
+            if(itemLink ~= nil) then
+                local itemname = bc2_item_link_to_item_name(itemLink)
+                if itemname == consume then
+                    local _, itemCount, _, _, _ = GetContainerItemInfo(i,j)
+                    count = count + itemCount
+                end
+            end
+        end
+    end
+    return count
+end
+
+--======================================================================================================================
+
 function bc2_test()
     bc2_send_message("buffcheck2_saved_consumes")
     bc2_tprint(buffcheck2_saved_consumes)
     bc2_send_message("bc2_current_consumes")
     bc2_tprint(bc2_current_consumes)
-    update_current_buffs_on_player()
-    bc2_send_message("bc2_current_buffs_on_player")
-    bc2_tprint(bc2_current_buffs_on_player)
-end
-
---======================================================================================================================
-
-function bc2_GetTextureByID(id)
-    local _, _, _, _, _, _, _, _, texture = GetItemInfo(id)
-    return texture
 end
 
 --======================================================================================================================
@@ -474,12 +493,14 @@ end
 
 -- GUI specific functions
 
+
 function bc2_add_item_to_interface(consume)
-    local button, icon
+    local button, icon, count
     if consume ~= "Interface\\Icons\\Spell_Nature_WispSplode" then
         for i = 1, bc2_button_count do
             button = getglobal("BuffCheck2Button"..i)
             icon = getglobal("BuffCheck2Button"..i.."Icon")
+            count = getglobal("BuffCheck2Button"..i.."Count")
             if(button:IsShown() == nil or icon:GetTexture() == "Interface\\Icons\\Spell_Nature_WispSplode") then
                 local texture
                 if bc2_item_buffs[consume] then
@@ -491,6 +512,7 @@ function bc2_add_item_to_interface(consume)
                 end
                 if texture then
                     icon:SetTexture(texture)
+                    count:SetText(bc2_get_item_count_in_bags(consume))
                     button:Show()
                 else
                     bc2_send_message("Error in bc2_add_item_to_interface with consume: " .. consume)
@@ -502,7 +524,9 @@ function bc2_add_item_to_interface(consume)
     else
         button = getglobal("BuffCheck2Button1")
         icon = getglobal("BuffCheck2Button1Icon")
+        count = getglobal("BuffCheck2Button1Count")
         icon:SetTexture(consume)
+        count:SetText("")
         button:Show()
     end
 end

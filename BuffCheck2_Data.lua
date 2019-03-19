@@ -25,6 +25,7 @@ bc2_item_buffs = {
     },
     ["R.O.I.D.S."] = {
         buff_path = { "Interface\\Icons\\Spell_Nature_Strength" },
+        buff_name = "Rage of Ages",
         id = 8410
     },
 
@@ -39,6 +40,7 @@ bc2_item_buffs = {
     },
     ["Bogling Root"] = {
         buff_path = { "Interface\\Icons\\Spell_Nature_Strength" },
+        buff_name = "Fury of the Bogling",
         id = 5206
     },
 
@@ -154,6 +156,7 @@ bc2_item_buffs = {
         -- jujus
     ["Juju Chill"] = {
         buff_path = { "Interface\\Icons\\INV_Misc_MonsterScales_09" },
+        buff_name = "Juju Chill",
         id = 12457
     },
     ["Juju Ember"] = {
