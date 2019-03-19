@@ -298,23 +298,24 @@ function bc2_player_has_buff(buffname)
                 if id1 ~= nil then
                     local _, _, _, _, _, sType, _, _ = GetItemInfo(id1)
                     if(string.sub(sType, 0, 1) == "O") then
-                        if hasMainHandEnchant ~= nil then
-                            return true
+                        if hasMainHandEnchant == nil then
+                            return false
                         end
                     elseif(string.sub(sType, 0, 1) == "T") then -- two handed
-                        if(hasMainHandEnchant ~= nil) then
-                            return true
+                        if(hasMainHandEnchant == nil) then
+                            return false
                         end
                     end
                 end
                 if id2 ~= nil then
                     local _, _, _, _, _, sType, _, _ = GetItemInfo(id2)
                     if(string.sub(sType, 0, 1) == "O") then
-                        if hasOffHandEnchant ~= nil then
-                            return true
+                        if hasOffHandEnchant == nil then
+                            return false
                         end
                     end
                 end
+                return true
                 -- saving this code for now, the main issue with it is if the offhand is a shield the
                 -- hasOffHandEnchant will always be nil
                 --[[if(string.sub(sType, 0, 1) == "O") then -- one handed
