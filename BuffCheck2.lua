@@ -70,6 +70,7 @@ function BuffCheck2_OnLoad()
     this:RegisterEvent("PLAYER_AURAS_CHANGED")
     this:RegisterEvent("UNIT_INVENTORY_CHANGED")
     this:RegisterEvent("PARTY_MEMBERS_CHANGED")
+    this:RegisterEvent("BAG_UPDATE")
 end
 
 --======================================================================================================================
@@ -81,6 +82,8 @@ function BuffCheck2_OnEvent(event)
         bc2_update_frame()
     elseif(event == "PARTY_MEMBERS_CHANGED") then
         bc2_check_group_update()
+    elseif(event == "BAG_UPDATE") then
+        bc2_update_item_counts()
     end
 end
 
@@ -316,17 +319,6 @@ function bc2_player_has_buff(buffname)
                     end
                 end
                 return true
-                -- saving this code for now, the main issue with it is if the offhand is a shield the
-                -- hasOffHandEnchant will always be nil
-                --[[if(string.sub(sType, 0, 1) == "O") then -- one handed
-                    if(hasMainHandEnchant ~= nil and hasOffHandEnchant ~= nil) then
-                        return true
-                    end
-                elseif(string.sub(sType, 0, 1) == "T") then -- two handed
-                    if(hasMainHandEnchant ~= nil) then
-                        return true
-                    end
-                end]]--
             end
         end
     end
@@ -479,6 +471,24 @@ function bc2_get_item_count_in_bags(consume)
     return count
 end
 
+function bc2_get_item_count_in_bags_using_texture(item_texture)
+    local count = 0
+    -- note: bags start at index 0 (Backpack)
+    for i = 0, 4 do
+        local numberOfSlots = GetContainerNumSlots(i)
+        for j = 1, numberOfSlots do
+            local itemLink = GetContainerItemLink(i, j)
+            if(itemLink ~= nil) then
+                local texture, itemCount, _, _, _ = GetContainerItemInfo(i,j)
+                if item_texture == texture then
+                    count = count + itemCount
+                end
+            end
+        end
+    end
+    return count
+end
+
 --======================================================================================================================
 
 function bc2_test()
@@ -513,7 +523,7 @@ function bc2_add_item_to_interface(consume)
                 end
                 if texture then
                     icon:SetTexture(texture)
-                    count:SetText(bc2_get_item_count_in_bags(consume))
+                    count:SetText(bc2_get_item_count_in_bags(consume)) -- still needed for when new items are added
                     button:Show()
                 else
                     bc2_send_message("Error in bc2_add_item_to_interface with consume: " .. consume)
@@ -529,6 +539,19 @@ function bc2_add_item_to_interface(consume)
         icon:SetTexture(consume)
         count:SetText("")
         button:Show()
+    end
+end
+
+function bc2_update_item_counts()
+    local button, icon, count
+    for i = 1, bc2_button_count do
+        button = getglobal("BuffCheck2Button"..i)
+        icon = getglobal("BuffCheck2Button"..i.."Icon")
+        local texture = icon:GetTexture()
+        if(button:IsShown() and texture ~= "Interface\\Icons\\Spell_Nature_WispSplode") then
+            count = getglobal("BuffCheck2Button"..i.."Count")
+            count:SetText(bc2_get_item_count_in_bags_using_texture(texture))
+        end
     end
 end
 
