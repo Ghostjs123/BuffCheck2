@@ -84,6 +84,7 @@ function BuffCheck2_OnEvent(event)
         bc2_check_group_update()
     elseif(event == "BAG_UPDATE") then
         bc2_update_item_counts()
+        bc2_set_item_cooldowns()
     end
 end
 
@@ -114,6 +115,20 @@ function bc2_init()
     bc2_showed_already = false
 
     bc2_update_frame()
+
+    -- make a cooldown frame for each button
+    local button
+    for i = 1, bc2_button_count do
+        button = getglobal("BuffCheck2Button"..i)
+        local myCooldown = CreateFrame("Model", nil, button, "CooldownFrameTemplate")
+
+        button.cooldown = function(start, duration)
+            CooldownFrame_SetTimer(myCooldown, start, duration, 1)
+        end
+    end
+
+    bc2_update_item_counts()
+
     bc2_send_message("BuffCheck2 - Init successful")
 end
 
@@ -141,6 +156,8 @@ function bc2_update_frame()
     else
         BuffCheck2Frame:SetWidth(54 + (count - 2) * 36)
     end
+
+    bc2_update_item_counts()
 end
 
 --======================================================================================================================
@@ -447,6 +464,9 @@ end
 
 function bc2_GetTextureByID(id)
     local _, _, _, _, _, _, _, _, texture = GetItemInfo(id)
+    if texture == nil then
+        bc2_send_message("Could not find texture for " .. tostring(id))
+    end
     return texture
 end
 
@@ -459,28 +479,10 @@ function bc2_get_item_count_in_bags(consume)
         local numberOfSlots = GetContainerNumSlots(i)
         for j = 1, numberOfSlots do
             local itemLink = GetContainerItemLink(i, j)
+            local _, itemCount, _, _, _ = GetContainerItemInfo(i, j)
             if(itemLink ~= nil) then
                 local itemname = bc2_item_link_to_item_name(itemLink)
                 if itemname == consume then
-                    local _, itemCount, _, _, _ = GetContainerItemInfo(i,j)
-                    count = count + itemCount
-                end
-            end
-        end
-    end
-    return count
-end
-
-function bc2_get_item_count_in_bags_using_texture(item_texture)
-    local count = 0
-    -- note: bags start at index 0 (Backpack)
-    for i = 0, 4 do
-        local numberOfSlots = GetContainerNumSlots(i)
-        for j = 1, numberOfSlots do
-            local itemLink = GetContainerItemLink(i, j)
-            if(itemLink ~= nil) then
-                local texture, itemCount, _, _, _ = GetContainerItemInfo(i,j)
-                if item_texture == texture then
                     count = count + itemCount
                 end
             end
@@ -491,11 +493,41 @@ end
 
 --======================================================================================================================
 
+function bc2_get_texture_cooldown(consume)
+    for i = 0, 4 do
+        local numberOfSlots = GetContainerNumSlots(i)
+        for j = 1, numberOfSlots do
+            local itemLink = GetContainerItemLink(i, j)
+            if(itemLink ~= nil) then
+                local itemname = bc2_item_link_to_item_name(itemLink)
+                if itemname == consume then
+                    local starttime, duration, _ = GetContainerItemCooldown(i, j)
+                    return starttime, duration
+                end
+            end
+        end
+    end
+    return 0, 0
+end
+
+--======================================================================================================================
+
 function bc2_test()
     bc2_send_message("buffcheck2_saved_consumes")
     bc2_tprint(buffcheck2_saved_consumes)
     bc2_send_message("bc2_current_consumes")
     bc2_tprint(bc2_current_consumes)
+
+    local startTime, duration, isEnabled = GetContainerItemCooldown(0, 10)
+    bc2_send_message(tostring(startTime) .. " " .. tostring(duration) .. " " .. tostring(isEnabled))
+    startTime, duration, isEnabled = GetContainerItemCooldown(0, 11)
+    bc2_send_message(tostring(startTime) .. " " .. tostring(duration) .. " " .. tostring(isEnabled))
+    local button = getglobal("BuffCheck2Button1")
+    button.cooldown(GetTime() - startTime, duration)
+    startTime, duration, isEnabled = GetContainerItemCooldown(0, 12)
+    bc2_send_message(tostring(startTime) .. " " .. tostring(duration) .. " " .. tostring(isEnabled))
+
+
 end
 
 --======================================================================================================================
@@ -523,7 +555,13 @@ function bc2_add_item_to_interface(consume)
                 end
                 if texture then
                     icon:SetTexture(texture)
-                    count:SetText(bc2_get_item_count_in_bags(consume)) -- still needed for when new items are added
+                    local consume_count = bc2_get_item_count_in_bags(bc2_current_consumes[i])
+                    count:SetText(consume_count) -- still needed for when new items are added
+                    if string.len(consume_count) == 2 then
+                        count:SetPoint("LEFT", button, "RIGHT", -16, -10)
+                    else
+                        count:SetPoint("LEFT", button, "RIGHT", -10, -10)
+                    end
                     button:Show()
                 else
                     bc2_send_message("Error in bc2_add_item_to_interface with consume: " .. consume)
@@ -550,7 +588,32 @@ function bc2_update_item_counts()
         local texture = icon:GetTexture()
         if(button:IsShown() and texture ~= "Interface\\Icons\\Spell_Nature_WispSplode") then
             count = getglobal("BuffCheck2Button"..i.."Count")
-            count:SetText(bc2_get_item_count_in_bags_using_texture(texture))
+            local consume_count = bc2_get_item_count_in_bags(bc2_current_consumes[i])
+            count:SetText(consume_count)
+            if string.len(consume_count) == 2 then
+                count:SetPoint("LEFT", button, "RIGHT", -16, -10)
+            else
+                count:SetPoint("LEFT", button, "RIGHT", -10, -10)
+            end
+        end
+    end
+end
+
+function bc2_set_item_cooldowns()
+    for i = 0, 4 do
+        local numberOfSlots = GetContainerNumSlots(i)
+        for j = 1, numberOfSlots do
+            local itemLink = GetContainerItemLink(i, j)
+            if(itemLink ~= nil) then
+                local itemname = bc2_item_link_to_item_name(itemLink)
+                for k = 1, table.getn(bc2_current_consumes) do
+                    if bc2_current_consumes[k] == itemname then
+                        local startTime, duration, isEnabled = GetContainerItemCooldown(i, j)
+                        local button = getglobal("BuffCheck2Button"..k)
+                        button.cooldown(GetTime(), duration)
+                    end
+                end
+            end
         end
     end
 end
