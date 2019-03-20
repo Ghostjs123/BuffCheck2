@@ -493,41 +493,11 @@ end
 
 --======================================================================================================================
 
-function bc2_get_texture_cooldown(consume)
-    for i = 0, 4 do
-        local numberOfSlots = GetContainerNumSlots(i)
-        for j = 1, numberOfSlots do
-            local itemLink = GetContainerItemLink(i, j)
-            if(itemLink ~= nil) then
-                local itemname = bc2_item_link_to_item_name(itemLink)
-                if itemname == consume then
-                    local starttime, duration, _ = GetContainerItemCooldown(i, j)
-                    return starttime, duration
-                end
-            end
-        end
-    end
-    return 0, 0
-end
-
---======================================================================================================================
-
 function bc2_test()
     bc2_send_message("buffcheck2_saved_consumes")
     bc2_tprint(buffcheck2_saved_consumes)
     bc2_send_message("bc2_current_consumes")
     bc2_tprint(bc2_current_consumes)
-
-    local startTime, duration, isEnabled = GetContainerItemCooldown(0, 10)
-    bc2_send_message(tostring(startTime) .. " " .. tostring(duration) .. " " .. tostring(isEnabled))
-    startTime, duration, isEnabled = GetContainerItemCooldown(0, 11)
-    bc2_send_message(tostring(startTime) .. " " .. tostring(duration) .. " " .. tostring(isEnabled))
-    local button = getglobal("BuffCheck2Button1")
-    button.cooldown(GetTime() - startTime, duration)
-    startTime, duration, isEnabled = GetContainerItemCooldown(0, 12)
-    bc2_send_message(tostring(startTime) .. " " .. tostring(duration) .. " " .. tostring(isEnabled))
-
-
 end
 
 --======================================================================================================================
