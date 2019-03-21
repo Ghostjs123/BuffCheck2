@@ -578,7 +578,7 @@ function bc2_set_item_cooldowns()
                 local itemname = bc2_item_link_to_item_name(itemLink)
                 for k = 1, table.getn(bc2_current_consumes) do
                     if bc2_current_consumes[k] == itemname then
-                        local startTime, duration, isEnabled = GetContainerItemCooldown(i, j)
+                        local _, duration, _ = GetContainerItemCooldown(i, j)
                         local button = getglobal("BuffCheck2Button"..k)
                         button.cooldown(GetTime(), duration)
                     end
@@ -598,7 +598,7 @@ function bc2_button_onclick(id)
             if(itemLink ~= nil) then
                 local itemname = bc2_item_link_to_item_name(itemLink)
                 if itemname == consume then
-                    UseContainerItem(i, j)
+                    UseContainerItem(i, j, 1)
                     bc2_send_message("Using " .. itemLink)
                     table.remove(bc2_current_consumes, id)
                     return
