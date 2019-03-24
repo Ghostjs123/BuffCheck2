@@ -5,6 +5,7 @@ buffcheck2_saved_consumes = {} -- should contain the actual name of the item, no
 bc2_current_consumes = {}
 
 bc2_button_count = 25
+bc2_bag_contents = {}
 
 bc2_showed_already = false
 
@@ -83,6 +84,7 @@ function BuffCheck2_OnEvent(event)
     elseif(event == "PARTY_MEMBERS_CHANGED") then
         bc2_check_group_update()
     elseif(event == "BAG_UPDATE") then
+        bc2_update_bag_contents()
         bc2_update_item_counts()
         bc2_set_item_cooldowns()
     end
@@ -101,7 +103,7 @@ function bc2_init()
     end
 
     if buffcheck2_config["showing"] == true then
-        bc2_show_frame()
+        bc2_show_frame(false)
     else
         bc2_hide_frame()
     end
@@ -112,9 +114,22 @@ function bc2_init()
         BuffCheck2Frame:SetPoint("CENTER", "UIParent")
     end
 
-    bc2_showed_already = false
+    -- sneak in all of the consumes in BuffCheck2_Data.lua into bc2_bag_contents
+    for key, _ in bc2_item_buffs do
+        bc2_bag_contents[key] = 0
+    end
+    for key, _ in bc2_food_buffs do
+        bc2_bag_contents[key] = 0
+    end
+    for key, _ in bc2_weapon_buffs do
+        bc2_bag_contents[key] = 0
+    end
+
+    bc2_update_bag_contents()
 
     bc2_update_frame()
+
+    bc2_update_item_counts()
 
     -- make a cooldown frame for each button
     local button
@@ -127,8 +142,7 @@ function bc2_init()
         end
     end
 
-    bc2_update_item_counts()
-
+    this:UnregisterEvent("VARIABLES_LOADED")
     bc2_send_message("BuffCheck2 - Init successful")
 end
 
@@ -137,27 +151,34 @@ end
 -- called on "PLAYER_AURAS_CHANGED"
 
 function bc2_update_frame()
+    -- rebuild the current missing consumes
     bc2_clear_current_consumes()
-    for i = 1, bc2_button_count do
-        local button = getglobal("BuffCheck2Button"..i)
-        button:Hide()
-    end
     local count = 1
     for _, consume in buffcheck2_saved_consumes do
         if bc2_player_has_buff(consume) == false then
-            bc2_add_item_to_interface(consume)
             bc2_current_consumes[count] = consume
             count = count + 1
         end
     end
-    if getglobal("BuffCheck2Button1"):IsVisible() == nil then
+    count = 1
+    for _, consume in bc2_current_consumes do
+        bc2_add_item_to_interface(consume, count)
+        count = count + 1
+    end
+    -- hide the rest of the buttons
+    for i = count, bc2_button_count do
+        local button = getglobal("BuffCheck2Button"..i)
+        if button:IsVisible() then
+            button:Hide()
+        end
+    end
+    -- if no missing consumes display the placeholder
+    if table.getn(bc2_current_consumes) == 0 then
         bc2_add_item_to_interface("Interface\\Icons\\Spell_Nature_WispSplode")
         BuffCheck2Frame:SetWidth(54)
     else
         BuffCheck2Frame:SetWidth(54 + (count - 2) * 36)
     end
-
-    bc2_update_item_counts()
 end
 
 --======================================================================================================================
@@ -250,11 +271,13 @@ end
 
 --======================================================================================================================
 
-function bc2_show_frame()
+function bc2_show_frame(should_update)
     buffcheck2_config["showing"] = true
     BuffCheck2Frame:Show()
     bc2_send_message("BuffCheck2 - Interface showing")
-    bc2_update_frame()
+    if should_update then
+        bc2_update_frame()
+    end
 end
 
 function bc2_hide_frame()
@@ -472,23 +495,28 @@ end
 
 --======================================================================================================================
 
-function bc2_get_item_count_in_bags(consume)
-    local count = 0
+function bc2_update_bag_contents()
+    -- clear bc2_bag_contents
+    for k in pairs(bc2_bag_contents) do
+        bc2_bag_contents[k] = 0
+    end
+    -- rebuild bc2_bag_contents
     -- note: bags start at index 0 (Backpack)
     for i = 0, 4 do
         local numberOfSlots = GetContainerNumSlots(i)
         for j = 1, numberOfSlots do
             local itemLink = GetContainerItemLink(i, j)
-            local _, itemCount, _, _, _ = GetContainerItemInfo(i, j)
             if(itemLink ~= nil) then
+                local _, itemCount, _, _, _ = GetContainerItemInfo(i, j)
                 local itemname = bc2_item_link_to_item_name(itemLink)
-                if itemname == consume then
-                    count = count + itemCount
+                if bc2_bag_contents[itemname] ~= nil then
+                    bc2_bag_contents[itemname] = bc2_bag_contents[itemname] + itemCount
+                else
+                    bc2_bag_contents[itemname] = itemCount
                 end
             end
         end
     end
-    return count
 end
 
 --======================================================================================================================
@@ -507,39 +535,35 @@ end
 -- GUI specific functions
 
 
-function bc2_add_item_to_interface(consume)
+function bc2_add_item_to_interface(consume, index)
     local button, icon, count
     if consume ~= "Interface\\Icons\\Spell_Nature_WispSplode" then
-        for i = 1, bc2_button_count do
-            button = getglobal("BuffCheck2Button"..i)
-            icon = getglobal("BuffCheck2Button"..i.."Icon")
-            count = getglobal("BuffCheck2Button"..i.."Count")
-            if(button:IsShown() == nil or icon:GetTexture() == "Interface\\Icons\\Spell_Nature_WispSplode") then
-                local texture
-                if bc2_item_buffs[consume] then
-                    texture = bc2_GetTextureByID(bc2_item_buffs[consume].id)
-                elseif bc2_food_buffs[consume] then
-                    texture = bc2_GetTextureByID(bc2_food_buffs[consume].id)
-                elseif bc2_weapon_buffs[consume] then
-                    texture = bc2_GetTextureByID(bc2_weapon_buffs[consume].id)
-                end
-                if texture then
-                    icon:SetTexture(texture)
-                    local consume_count = bc2_get_item_count_in_bags(bc2_current_consumes[i])
-                    count:SetText(consume_count) -- still needed for when new items are added
-                    if string.len(consume_count) == 2 then
-                        count:SetPoint("LEFT", button, "RIGHT", -16, -10)
-                    else
-                        count:SetPoint("LEFT", button, "RIGHT", -10, -10)
-                    end
-                    button:Show()
-                else
-                    bc2_send_message("Error in bc2_add_item_to_interface with consume: " .. consume)
-                end
-
-                return
-            end
+        button = getglobal("BuffCheck2Button"..index)
+        icon = getglobal("BuffCheck2Button"..index.."Icon")
+        count = getglobal("BuffCheck2Button"..index.."Count")
+        local texture
+        if bc2_item_buffs[consume] then
+            texture = bc2_GetTextureByID(bc2_item_buffs[consume].id)
+        elseif bc2_food_buffs[consume] then
+            texture = bc2_GetTextureByID(bc2_food_buffs[consume].id)
+        elseif bc2_weapon_buffs[consume] then
+            texture = bc2_GetTextureByID(bc2_weapon_buffs[consume].id)
         end
+        if texture then
+            icon:SetTexture(texture)
+            local consume_count = bc2_bag_contents[bc2_current_consumes[index]]
+            count:SetText(consume_count) -- still needed for when new items are added
+            if string.len(consume_count) == 2 then
+                count:SetPoint("LEFT", button, "RIGHT", -16, -10)
+            else
+                count:SetPoint("LEFT", button, "RIGHT", -10, -10)
+            end
+            button:Show()
+        else
+            bc2_send_message("Error in bc2_add_item_to_interface with consume: " .. consume)
+        end
+
+        return
     else
         button = getglobal("BuffCheck2Button1")
         icon = getglobal("BuffCheck2Button1Icon")
@@ -552,13 +576,13 @@ end
 
 function bc2_update_item_counts()
     local button, icon, count
-    for i = 1, bc2_button_count do
+    for i = 1, table.getn(bc2_current_consumes) do
         button = getglobal("BuffCheck2Button"..i)
         icon = getglobal("BuffCheck2Button"..i.."Icon")
         local texture = icon:GetTexture()
-        if(button:IsShown() and texture ~= "Interface\\Icons\\Spell_Nature_WispSplode") then
+        if texture ~= "Interface\\Icons\\Spell_Nature_WispSplode" then
             count = getglobal("BuffCheck2Button"..i.."Count")
-            local consume_count = bc2_get_item_count_in_bags(bc2_current_consumes[i])
+            local consume_count = bc2_bag_contents[bc2_current_consumes[i]]
             count:SetText(consume_count)
             if string.len(consume_count) == 2 then
                 count:SetPoint("LEFT", button, "RIGHT", -16, -10)
