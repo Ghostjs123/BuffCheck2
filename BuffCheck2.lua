@@ -1,8 +1,5 @@
 bc2_default_print_format = "|c00f7f26c%s|r"
 
-BuffCheck2_TimeSinceLastUpdate = 0
-BuffCheck2_UpdateInterval = 10.0 -- How often the OnUpdate code will run (in seconds)
-
 buffcheck2_config = {}
 buffcheck2_saved_consumes = {} -- should contain the actual name of the item, not the buff texture
 bc2_current_consumes = {}
@@ -104,8 +101,11 @@ function BuffCheck2_OnUpdate()
     local needs_removed = {}
     for id, timer in bc2_current_timers do
         timer.elapsed = timer.elapsed + arg1
-        if timer.given_warning == false and timer.duration - timer.elapsed < 300 then -- 5 minutes
+        if timer.given_warning == false and timer.duration > 900 and timer.duration - timer.elapsed < 300 then -- 5 minutes
             bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
+            timer.given_warning = true
+        elseif timer.given_warning == false and timer.duration <= 900 and timer.duration - timer.elapsed < 120 then -- 2 minutes
+            bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has 2 minutes remaining"))
             timer.given_warning = true
         elseif timer.elapsed > timer.duration then
             bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
