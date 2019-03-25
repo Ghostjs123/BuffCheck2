@@ -1,19 +1,21 @@
-# **BuffCheck**
+# **BuffCheck2**
 Wow 1.12 addon to monitor consumes
+
+![alt text](https://i.imgur.com/7aJgBJ4.png)
 
 **Usage:**<br/>
 Add each consume using the add command below. The interface will only display an icon of 
 the consume when the consume is not active. Right clicking the icon uses the consume. 
-If there is nothing to display the interface will display a placeholder and update again when a consume falls off.
+If there is nothing to display the interface will display a placeholder and update again when a consume expires.
 
 Currently supports most* consumes, food buffs, and weapon buffs. If you find one missing
 feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
 
 **Commands:**<br/>
-/bc2 **add** {**ItemLink**}
+/bc2 **add** [**ItemLink**]
   - adds the linked item to be monitored
 
-/bc2 **remove** {**ItemLink**}
+/bc2 **remove** [**ItemLink**]
   
   - removes the linked item
 
