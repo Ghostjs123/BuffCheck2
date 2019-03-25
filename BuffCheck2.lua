@@ -1,16 +1,23 @@
 bc2_default_print_format = "|c00f7f26c%s|r"
 
+BuffCheck2_TimeSinceLastUpdate = 0
+BuffCheck2_UpdateInterval = 10.0 -- How often the OnUpdate code will run (in seconds)
+
 buffcheck2_config = {}
 buffcheck2_saved_consumes = {} -- should contain the actual name of the item, not the buff texture
 bc2_current_consumes = {}
 
 bc2_button_count = 25
+
 bc2_bag_contents = {}
+
+bc2_current_timers = {}
 
 bc2_showed_already = false
 
 food_buff_textures = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
-    "Interface\\Icons\\INV_Gauntlets_19", "Interface\\Icons\\Spell_Nature_ManaRegenTotem"}
+    "Interface\\Icons\\INV_Gauntlets_19", "Interface\\Icons\\Spell_Nature_ManaRegenTotem",
+    "Interface\\Icons\\Spell_Holy_Devotion", "Interface\\Icons\\Spell_Holy_LayOnHands"}
 
 --======================================================================================================================
 
@@ -92,6 +99,28 @@ end
 
 --======================================================================================================================
 
+function BuffCheck2_OnUpdate()
+    -- arg1 is the time since the last BuffCheck2_OnUpdate() call, BuffCheck2_OnUpdate() gets called every frame
+    local needs_removed = {}
+    for id, timer in bc2_current_timers do
+        timer.elapsed = timer.elapsed + arg1
+        if timer.given_warning == false and timer.duration - timer.elapsed < 300 then -- 5 minutes
+            bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
+            timer.given_warning = true
+        elseif timer.elapsed > timer.duration then
+            bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
+            table.insert(needs_removed, id)
+        end
+    end
+    local i = table.getn(needs_removed)
+    while i > 0 do
+        table.remove(bc2_current_timers, needs_removed[i])
+        i = i - 1
+    end
+end
+
+--======================================================================================================================
+
 -- called on "VARIABLES_LOADED"
 
 function bc2_init()
@@ -142,13 +171,17 @@ function bc2_init()
         end
     end
 
+    -- set the OnUpdate event
+    BuffCheck2Frame:SetScript("OnUpdate", BuffCheck2_OnUpdate)
+
     this:UnregisterEvent("VARIABLES_LOADED")
     bc2_send_message("BuffCheck2 - Init successful")
 end
 
 --======================================================================================================================
 
--- called on "PLAYER_AURAS_CHANGED"
+-- called on "PLAYER_AURAS_CHANGED", bc2_init(), bc2_add_item_to_saved_list(),
+-- bc2_remove_item_from_saved_list(), bc2_show_frame(), bc2_update_frame()
 
 function bc2_update_frame()
     -- rebuild the current missing consumes
@@ -160,6 +193,7 @@ function bc2_update_frame()
             count = count + 1
         end
     end
+    -- display the current missing consumes
     count = 1
     for _, consume in bc2_current_consumes do
         bc2_add_item_to_interface(consume, count)
@@ -177,7 +211,7 @@ function bc2_update_frame()
         bc2_add_item_to_interface("Interface\\Icons\\Spell_Nature_WispSplode")
         BuffCheck2Frame:SetWidth(54)
     else
-        BuffCheck2Frame:SetWidth(54 + (count - 2) * 36)
+        BuffCheck2Frame:SetWidth(54 + (count - 2) * 36) -- resize the frame
     end
 end
 
@@ -241,6 +275,15 @@ function bc2_remove_item_from_saved_list(item_name)
     else
        bc2_send_message("Could not find " .. item_name .. " in BuffCheck2_Data.lua")
     end
+end
+
+function bc2_get_index_in_table(tab, val)
+    for index, value in tab do
+        if value == val then
+            return index
+        end
+    end
+    return nil
 end
 
 --======================================================================================================================
@@ -395,13 +438,13 @@ end
 
 function bc2_texture_to_name(texture)
     for spell_name, spell_info in bc2_item_buffs do
-        if(bc2_has_value(spell_info.buff_path, texture)) then
+        if bc2_has_value(spell_info.buff_path, texture) then
             return spell_name
         end
     end
 
     for spell_name, spell_info in bc2_food_buffs do
-        if(bc2_has_value(spell_info.buff_path, texture)) then
+        if bc2_has_value(spell_info.buff_path, texture) then
             return spell_name
         end
     end
@@ -411,14 +454,51 @@ end
 
 function bc2_name_to_texture(name)
     for spell_name, spell_info in bc2_item_buffs do
-        if(spell_name == name) then
+        if spell_name == name  then
             return spell_info.buff_path
         end
     end
 
     for spell_name, spell_info in bc2_food_buffs do
-        if(spell_name == name) then
+        if spell_name == name  then
             return spell_info.buff_path
+        end
+    end
+
+    return ""
+end
+
+function bc2_name_to_link(name)
+    for spell_name, spell_info in bc2_item_buffs do
+        if spell_name == name  then
+            local name, link, quality = GetItemInfo(spell_info.id)
+            if(quality == nil or quality < 0 or quality > 7) then
+                quality = 1
+            end
+            local r,g,b = GetItemQualityColor(quality)
+            return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..name.."]|h|r"
+        end
+    end
+
+    for spell_name, spell_info in bc2_food_buffs do
+        if spell_name == name  then
+            local name, link, quality = GetItemInfo(spell_info.id)
+            if(quality == nil or quality < 0 or quality > 7) then
+                quality = 1
+            end
+            local r,g,b = GetItemQualityColor(quality)
+            return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..name.."]|h|r"
+        end
+    end
+
+    for spell_name, spell_info in bc2_weapon_buffs do
+        if spell_name == name  then
+            local name, link, quality = GetItemInfo(spell_info.id)
+            if(quality == nil or quality < 0 or quality > 7) then
+                quality = 1
+            end
+            local r,g,b = GetItemQualityColor(quality)
+            return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..name.."]|h|r"
         end
     end
 
@@ -521,11 +601,64 @@ end
 
 --======================================================================================================================
 
+function bc2_set_expiration_timer(consume)
+    -- if there is already an active timer then reset it
+    for _, active_timer in bc2_current_timers do
+        if active_timer.consume == consume then
+            active_timer.elapsed = 0
+            active_timer.given_warning = false
+        end
+    end
+
+    -- otherwise make a new timer
+    local consume_info
+    if bc2_item_buffs[consume] ~= nil then
+        consume_info = bc2_item_buffs[consume]
+    elseif bc2_food_buffs[consume] ~= nil then
+        consume_info = bc2_food_buffs[consume]
+    elseif bc2_weapon_buffs[consume] ~= nil then
+        consume_info = bc2_weapon_buffs[consume]
+    end
+    if consume_info then
+        local timer = {}
+        timer.consume = consume
+        timer.duration = consume_info.duration
+        timer.elapsed = 0
+        timer.given_warning = false
+
+        if timer.duration ~= 0 then -- don't add consumes w/ duration 0
+            table.insert(bc2_current_timers, timer)
+        end
+    end
+end
+
+--======================================================================================================================
+
 function bc2_test()
-    bc2_send_message("buffcheck2_saved_consumes")
+    --[[bc2_send_message("buffcheck2_saved_consumes")
     bc2_tprint(buffcheck2_saved_consumes)
     bc2_send_message("bc2_current_consumes")
-    bc2_tprint(bc2_current_consumes)
+    bc2_tprint(bc2_current_consumes)]]--
+
+    local consume = "Elixir of the Mongoose"
+
+    local consume_info
+    if bc2_item_buffs[consume] ~= nil then
+        consume_info = bc2_item_buffs[consume]
+    elseif bc2_food_buffs[consume] ~= nil then
+        consume_info = bc2_food_buffs[consume]
+    elseif bc2_weapon_buffs[consume] ~= nil then
+        consume_info = bc2_weapon_buffs[consume]
+    end
+    if consume_info then
+        local timer = {}
+        timer.consume = consume
+        --timer.duration = consume_info.duration
+        timer.duration = 10
+        timer.elapsed = 0
+        timer.given_warning = false
+        table.insert(bc2_current_timers, timer)
+    end
 end
 
 --======================================================================================================================
@@ -624,6 +757,7 @@ function bc2_button_onclick(id)
                 if itemname == consume then
                     UseContainerItem(i, j, 1)
                     bc2_send_message("Using " .. itemLink)
+                    bc2_set_expiration_timer(bc2_current_consumes[id])
                     table.remove(bc2_current_consumes, id)
                     return
                 end
@@ -757,13 +891,33 @@ function bc2_has_value(tab, val)
     return false
 end
 
-function bc2_get_index_in_table(tab, val)
-    for index, value in tab do
-        if value == val then
-            return index
+function bc2_rgbToHex(rgb)
+    local hexadecimal = ''
+
+    for key, value in pairs(rgb) do
+        local hex = ''
+
+        value = value * 255
+
+        while(value > 0)do
+            -- a % b == a - math.floor(a/b)*b
+            --local index = math.fmod(value, 16) + 1
+            local index = value - math.floor(value / 16) * 16 + 1
+            value = math.floor(value / 16)
+            hex = string.sub('0123456789ABCDEF', index, index) .. hex
         end
+
+        if(string.len(hex) == 0)then
+            hex = '00'
+
+        elseif(string.len(hex) == 1)then
+            hex = '0' .. hex
+        end
+
+        hexadecimal = hexadecimal .. hex
     end
-    return nil
+
+    return hexadecimal
 end
 
 --======================================================================================================================
