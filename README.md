@@ -8,6 +8,9 @@ Add each consume using the add command below. The interface will only display an
 the consume when the consume is not active. Right clicking the icon uses the consume. 
 If there is nothing to display the interface will display a placeholder and update again when a consume expires.
 
+Also gives a five or two minute expiration warning based on the consumes duration. Two minutes for consumes with duration 15min or less, five minutes otherwise.
+Then gives another message when the consume expires.
+
 Currently supports most* consumes, food buffs, and weapon buffs. If you find one missing
 feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
 
