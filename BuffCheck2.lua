@@ -239,6 +239,7 @@ function bc2_update_frame()
             if bc2_consume_has_timer(consume) then
                 for index, active_timer in buffcheck2_current_timers do
                     if active_timer.consume == consume then
+                        bc2_send_message("BuffCheck2: " .. bc2_name_to_link(consume) .. string.format(bc2_default_print_format," is not present, removing its timer"))
                         table.remove(buffcheck2_current_timers, index)
                     end
                 end
