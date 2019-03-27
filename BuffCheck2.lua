@@ -120,11 +120,11 @@ function BuffCheck2_OnUpdate()
     if buffcheck2_config["expiration"] or buffcheck2_config["expiration"] == nil then
         -- arg1 is the time since the last BuffCheck2_OnUpdate() call, BuffCheck2_OnUpdate() gets called every frame
         local needs_update = false
-        local needs_removed = {}
         for id, timer in buffcheck2_current_timers do
             -- increment elapsed and since_last_update
             timer.elapsed = timer.elapsed + arg1
             timer.since_last_update = timer.since_last_update + arg1
+
             -- check for soon to expire or expire
             if timer.given_warning == false and timer.duration > 900 and timer.duration - timer.elapsed < 300 then -- 5 minutes
                 bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
@@ -136,20 +136,15 @@ function BuffCheck2_OnUpdate()
                 needs_update = true
             elseif timer.elapsed > timer.duration then
                 bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
-                table.insert(needs_removed, id)
+                buffcheck2_current_timers[id] = nil
             end
         end
-        -- remove the expired timers
-        local i = table.getn(needs_removed)
-        while i > 0 do
-            table.remove(buffcheck2_current_timers, needs_removed[i])
-            i = i - 1
 
-        end
-        -- update to add any soon to expire timers to the interface
+        -- update the frame to add any soon to expire timers to the interface
         if needs_update then
             bc2_update_frame()
         end
+
         -- finally update the remaining time on soon to expire consumes
         -- need to wait until the bc2_update_frame() call before doing this so that the consume is in the interface
         for _, active_timer in buffcheck2_current_timers do
@@ -198,23 +193,6 @@ function bc2_init()
         BuffCheck2Frame:SetPoint("CENTER", "UIParent")
     end
 
-    -- sneak in all of the consumes in BuffCheck2_Data.lua into bc2_bag_contents
-    for key, _ in bc2_item_buffs do
-        bc2_bag_contents[key] = 0
-    end
-    for key, _ in bc2_food_buffs do
-        bc2_bag_contents[key] = 0
-    end
-    for key, _ in bc2_weapon_buffs do
-        bc2_bag_contents[key] = 0
-    end
-
-    bc2_update_bag_contents()
-
-    bc2_update_frame()
-
-    bc2_update_item_counts()
-
     -- make a cooldown frame for each button
     local button
     for i = 1, bc2_button_count do
@@ -225,6 +203,12 @@ function bc2_init()
             CooldownFrame_SetTimer(myCooldown, start, duration, 1)
         end
     end
+
+    bc2_update_bag_contents()
+
+    bc2_update_frame()
+
+    bc2_update_item_counts()
 
     -- set the OnUpdate event
     BuffCheck2Frame:SetScript("OnUpdate", BuffCheck2_OnUpdate)
@@ -243,7 +227,9 @@ function bc2_update_frame()
     bc2_clear_current_consumes()
     local count = 1
     for _, consume in buffcheck2_saved_consumes do
-        if bc2_player_has_buff(consume) == false then
+        local has_buff = bc2_player_has_buff(consume)
+        -- add any missing consumes
+        if has_buff == false then
             bc2_current_consumes[count] = consume
             -- also need to remove any active timers for the consume in case the player clicked the buff off
             if bc2_consume_has_timer(consume) then
@@ -255,14 +241,13 @@ function bc2_update_frame()
                 end
             end
             count = count + 1
-        end
-    end
-    -- add any near expiration consumes to current_consumes
-    for _, active_timer in buffcheck2_current_timers do
-        if active_timer.given_warning then
-            if bc2_player_has_buff(active_timer.consume) == true then
-                bc2_current_consumes[count] = active_timer.consume
-                count = count + 1
+        -- add the expiration timer for the consume to current_consumes if it exists
+        elseif has_buff == true and bc2_consume_has_timer(consume) then
+            for _, active_timer in buffcheck2_current_timers do
+                if active_timer.given_warning and active_timer.consume == consume then
+                    bc2_current_consumes[count] = active_timer.consume
+                    count = count + 1
+                end
             end
         end
     end
@@ -309,14 +294,21 @@ function bc2_add_item_to_saved_list(item_name)
     if bufftexture == nil then
         bufftexture = bc2_weapon_buffs[item_name]
     end
+
     if bufftexture then
-        if contains then
-            bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(item_name) .. " is already added")
+        local itemname, link, quality = GetItemInfo(bufftexture.id)
+        if itemname == nil then
+            bc2_send_message("BuffCheck2: error - " .. tostring(item_name) .. " is not in your wdb, cannot be added")
+            return
         else
-            table.insert(buffcheck2_saved_consumes, item_name)
-            bc2_send_message("BuffCheck2: added: " .. bc2_item_name_to_item_link(item_name))
-            bc2_update_frame()
-            bc2_update_item_counts()
+            if contains then
+                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(item_name) .. string.format(bc2_default_print_format, " is already added"))
+            else
+                table.insert(buffcheck2_saved_consumes, item_name)
+                bc2_send_message("BuffCheck2: added: " .. bc2_item_name_to_item_link(item_name))
+                bc2_update_frame()
+                bc2_update_item_counts()
+            end
         end
     else
         bc2_send_message("Could not find " .. item_name .. " in BuffCheck2_Data.lua")
@@ -342,12 +334,18 @@ function bc2_remove_item_from_saved_list(item_name)
         bufftexture = bc2_weapon_buffs[item_name]
     end
     if bufftexture then
-        if contains == false then
-            bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(item_name) .. " is not added")
+        local itemname, link, quality = GetItemInfo(bufftexture.id)
+        if itemname == nil then
+            bc2_send_message("BuffCheck2: error - " .. tostring(item_name) .. " is not in your wdb, cannot be removed")
+            return
         else
-            table.remove(buffcheck2_saved_consumes, bc2_get_index_in_table(buffcheck2_saved_consumes, item_name))
-            bc2_send_message("BuffCheck2: removed: " .. bc2_item_name_to_item_link(item_name))
-            bc2_update_frame()
+            if contains == false then
+                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(item_name) .. string.format(bc2_default_print_format, " is not added"))
+            else
+                table.remove(buffcheck2_saved_consumes, bc2_get_index_in_table(buffcheck2_saved_consumes, item_name))
+                bc2_send_message("BuffCheck2: removed: " .. bc2_item_name_to_item_link(item_name))
+                bc2_update_frame()
+            end
         end
     else
        bc2_send_message("Could not find " .. item_name .. " in BuffCheck2_Data.lua")
@@ -508,34 +506,47 @@ end
 function bc2_item_name_to_item_link(name)
     for spell_name, spell_info in bc2_item_buffs do
         if spell_name == name  then
-            local name, link, quality = GetItemInfo(spell_info.id)
+            local itemname, link, quality = GetItemInfo(spell_info.id)
             if(quality == nil or quality < 0 or quality > 7) then
                 quality = 1
             end
             local r,g,b = GetItemQualityColor(quality)
-            return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..name.."]|h|r"
+            if itemname == nil then
+                bc2_send_message("BuffCheck2: error - " .. name .. " is not in your wdb")
+                return
+            else
+                return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..itemname.."]|h|r"
+            end
         end
     end
 
     for spell_name, spell_info in bc2_food_buffs do
         if spell_name == name  then
-            local name, link, quality = GetItemInfo(spell_info.id)
+            local itemname, link, quality = GetItemInfo(spell_info.id)
             if(quality == nil or quality < 0 or quality > 7) then
                 quality = 1
             end
             local r,g,b = GetItemQualityColor(quality)
-            return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..name.."]|h|r"
+            if itemname == nil then
+                bc2_send_message("BuffCheck2: error - " .. name .. " is not in your wdb")
+            else
+                return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..itemname.."]|h|r"
+            end
         end
     end
 
     for spell_name, spell_info in bc2_weapon_buffs do
         if spell_name == name  then
-            local name, link, quality = GetItemInfo(spell_info.id)
+            local itemname, link, quality = GetItemInfo(spell_info.id)
             if(quality == nil or quality < 0 or quality > 7) then
                 quality = 1
             end
             local r,g,b = GetItemQualityColor(quality)
-            return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..name.."]|h|r"
+            if itemname == nil then
+                bc2_send_message("BuffCheck2: error - " .. name .. " is not in your wdb")
+            else
+                return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..itemname.."]|h|r"
+            end
         end
     end
 
@@ -605,7 +616,7 @@ end
 function bc2_GetTextureByID(id)
     local _, _, _, _, _, _, _, _, texture = GetItemInfo(id)
     if texture == nil then
-        bc2_send_message("Could not find texture for " .. tostring(id))
+        return "Interface\\Icons\\Spell_Nature_WispSplode"
     end
     return texture
 end
@@ -617,6 +628,18 @@ function bc2_update_bag_contents()
     for k in pairs(bc2_bag_contents) do
         bc2_bag_contents[k] = 0
     end
+
+    -- sneak in all of the consumes in BuffCheck2_Data.lua into bc2_bag_contents
+    for key, _ in bc2_item_buffs do
+        bc2_bag_contents[key] = 0
+    end
+    for key, _ in bc2_food_buffs do
+        bc2_bag_contents[key] = 0
+    end
+    for key, _ in bc2_weapon_buffs do
+        bc2_bag_contents[key] = 0
+    end
+
     -- rebuild bc2_bag_contents
     -- note: bags start at index 0 (Backpack)
     for i = 0, 4 do
@@ -763,8 +786,6 @@ function bc2_add_item_to_interface(consume, index, is_timer)
             button:Show()
 
             button.consume = consume
-        else
-            bc2_send_message("Error in bc2_add_item_to_interface with consume: " .. consume)
         end
 
         return
