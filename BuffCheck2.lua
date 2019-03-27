@@ -8,7 +8,8 @@ bc2_button_count = 25
 
 bc2_bag_contents = {}
 
-bc2_current_timers = {}
+buffcheck2_current_timers = {}
+bc2_time_remaining_on_buffs = {}
 
 bc2_showed_already = false
 
@@ -34,6 +35,7 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
         bc2_send_message("hide - hides the frame")
         bc2_send_message("scale - scales the frame, default is 100")
         bc2_send_message("clear - clears the saved list of consumes")
+        bc2_send_message("toggle expiration - toggles the display of expiration messages, default is on")
     elseif(string.find(args, "add") ~= nil) then
         local item_name = bc2_get_item_name_from_args(args)
         if(item_name == nil) then
@@ -61,6 +63,14 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
     elseif(string.find(args, "scale") ~= nil) then
         local scale = string.sub(args, string.match(args, "%d+"))
         bc2_scale_interface(tonumber(scale))
+    elseif(string.find(args, "toggle expiration")) then
+        if buffcheck2_config["expiration"] or buffcheck2_config["expiration"] == nil then
+            buffcheck2_config["expiration"] = false
+        else
+            buffcheck2_config["expiration"] = true
+        end
+    elseif(string.find(args, "test2") ~= nil) then
+        bc2_test2()
     elseif(string.find(args, "test") ~= nil) then
         bc2_test()
     else
@@ -97,25 +107,61 @@ end
 --======================================================================================================================
 
 function BuffCheck2_OnUpdate()
-    -- arg1 is the time since the last BuffCheck2_OnUpdate() call, BuffCheck2_OnUpdate() gets called every frame
-    local needs_removed = {}
-    for id, timer in bc2_current_timers do
-        timer.elapsed = timer.elapsed + arg1
-        if timer.given_warning == false and timer.duration > 900 and timer.duration - timer.elapsed < 300 then -- 5 minutes
-            bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
-            timer.given_warning = true
-        elseif timer.given_warning == false and timer.duration <= 900 and timer.duration - timer.elapsed < 120 then -- 2 minutes
-            bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has 2 minutes remaining"))
-            timer.given_warning = true
-        elseif timer.elapsed > timer.duration then
-            bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
-            table.insert(needs_removed, id)
+    -- OnUpdate is currently only used to manage the expiration timers
+    if buffcheck2_config["expiration"] or buffcheck2_config["expiration"] == nil then
+        -- arg1 is the time since the last BuffCheck2_OnUpdate() call, BuffCheck2_OnUpdate() gets called every frame
+        local needs_update = false
+        local needs_removed = {}
+        for id, timer in buffcheck2_current_timers do
+            -- increment elapsed and since_last_update
+            timer.elapsed = timer.elapsed + arg1
+            timer.since_last_update = timer.since_last_update + arg1
+            -- check for soon to expire or expire
+            if timer.given_warning == false and timer.duration > 900 and timer.duration - timer.elapsed < 300 then -- 5 minutes
+                bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
+                timer.given_warning = true
+                needs_update = true
+            elseif timer.given_warning == false and timer.duration <= 900 and timer.duration - timer.elapsed < 120 then -- 2 minutes
+                bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has 2 minutes remaining"))
+                timer.given_warning = true
+                needs_update = true
+            elseif timer.elapsed > timer.duration then
+                bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
+                table.insert(needs_removed, id)
+            end
         end
-    end
-    local i = table.getn(needs_removed)
-    while i > 0 do
-        table.remove(bc2_current_timers, needs_removed[i])
-        i = i - 1
+        -- remove the expired timers
+        local i = table.getn(needs_removed)
+        while i > 0 do
+            table.remove(buffcheck2_current_timers, needs_removed[i])
+            i = i - 1
+
+        end
+        -- update to add any soon to expire timers to the interface
+        if needs_update then
+            bc2_update_frame()
+        end
+        -- finally update the remaining time on soon to expire consumes
+        -- need to wait until the bc2_update_frame() call before doing this so that the consume is in the interface
+        for _, active_timer in buffcheck2_current_timers do
+            if active_timer.given_warning then
+                if active_timer.since_last_update > 1 then -- update every second instead of every frame
+                    local button, duration
+                    for i = 1, table.getn(bc2_current_consumes) do
+                        button = getglobal("BuffCheck2Button"..i)
+                        if button.consume == active_timer.consume then
+                            duration = getglobal("BuffCheck2Button"..i.."Duration")
+                            local remainder = floor(active_timer.duration - active_timer.elapsed)
+                            if remainder > 60 then
+                                remainder = floor(remainder / 60 + 0.5)
+                            end
+                            duration:SetText(remainder)
+                            active_timer.since_last_update = 0
+                        end
+                    end
+                end
+            end
+        end
     end
 end
 
@@ -181,7 +227,7 @@ end
 --======================================================================================================================
 
 -- called on "PLAYER_AURAS_CHANGED", bc2_init(), bc2_add_item_to_saved_list(),
--- bc2_remove_item_from_saved_list(), bc2_show_frame(), bc2_update_frame()
+-- bc2_remove_item_from_saved_list(), bc2_show_frame(), bc2_update_frame(), BuffCheck2_OnUpdate()
 
 function bc2_update_frame()
     -- rebuild the current missing consumes
@@ -190,15 +236,34 @@ function bc2_update_frame()
     for _, consume in buffcheck2_saved_consumes do
         if bc2_player_has_buff(consume) == false then
             bc2_current_consumes[count] = consume
+            -- also need to remove any active timers for the consume in case the player clicked the buff off
+            if bc2_consume_has_timer(consume) then
+                for index, active_timer in buffcheck2_current_timers do
+                    if active_timer.consume == consume then
+                        table.remove(buffcheck2_current_timers, index)
+                    end
+                end
+            end
             count = count + 1
         end
     end
+    -- add any near expiration consumes to current_consumes
+    for _, active_timer in buffcheck2_current_timers do
+        if active_timer.given_warning then
+            if bc2_player_has_buff(active_timer.consume) == true then
+                bc2_current_consumes[count] = active_timer.consume
+                count = count + 1
+            end
+        end
+    end
+
     -- display the current missing consumes
     count = 1
     for _, consume in bc2_current_consumes do
-        bc2_add_item_to_interface(consume, count)
+        bc2_add_item_to_interface(consume, count, bc2_consume_has_timer(consume))
         count = count + 1
     end
+
     -- hide the rest of the buttons
     for i = count, bc2_button_count do
         local button = getglobal("BuffCheck2Button"..i)
@@ -206,12 +271,13 @@ function bc2_update_frame()
             button:Hide()
         end
     end
-    -- if no missing consumes display the placeholder
+
+    -- if no missing consumes display the placeholder, also resize the frame
     if table.getn(bc2_current_consumes) == 0 then
         bc2_add_item_to_interface("Interface\\Icons\\Spell_Nature_WispSplode")
         BuffCheck2Frame:SetWidth(54)
     else
-        BuffCheck2Frame:SetWidth(54 + (count - 2) * 36) -- resize the frame
+        BuffCheck2Frame:SetWidth(54 + (count - 2) * 36)
     end
 end
 
@@ -240,6 +306,7 @@ function bc2_add_item_to_saved_list(item_name)
             table.insert(buffcheck2_saved_consumes, item_name)
             bc2_send_message("added: " .. tostring(item_name))
             bc2_update_frame()
+            bc2_update_item_counts()
         end
     else
         bc2_send_message("Could not find " .. item_name .. " in BuffCheck2_Data.lua")
@@ -275,15 +342,6 @@ function bc2_remove_item_from_saved_list(item_name)
     else
        bc2_send_message("Could not find " .. item_name .. " in BuffCheck2_Data.lua")
     end
-end
-
-function bc2_get_index_in_table(tab, val)
-    for index, value in tab do
-        if value == val then
-            return index
-        end
-    end
-    return nil
 end
 
 --======================================================================================================================
@@ -436,38 +494,6 @@ end
 
 --======================================================================================================================
 
-function bc2_texture_to_name(texture)
-    for spell_name, spell_info in bc2_item_buffs do
-        if bc2_has_value(spell_info.buff_path, texture) then
-            return spell_name
-        end
-    end
-
-    for spell_name, spell_info in bc2_food_buffs do
-        if bc2_has_value(spell_info.buff_path, texture) then
-            return spell_name
-        end
-    end
-
-    return ""
-end
-
-function bc2_name_to_texture(name)
-    for spell_name, spell_info in bc2_item_buffs do
-        if spell_name == name  then
-            return spell_info.buff_path
-        end
-    end
-
-    for spell_name, spell_info in bc2_food_buffs do
-        if spell_name == name  then
-            return spell_info.buff_path
-        end
-    end
-
-    return ""
-end
-
 function bc2_name_to_link(name)
     for spell_name, spell_info in bc2_item_buffs do
         if spell_name == name  then
@@ -528,7 +554,7 @@ function bc2_item_link_to_item_name(itemLink)
 end
 
 function bc2_get_item_name_from_args(args)
-    -- ideal args format "add [Elixir of the Mongoose]
+    -- ideal args format "add [Elixir of the Mongoose]"
     -- matches anything inside square brackets ex: asdasd[abc]asdasd -> abc
     -- copy paste of bc2_item_link_to_item_name, keeping it seperate in case the pattern needs changed later
     if args ~= nil then
@@ -602,34 +628,48 @@ end
 --======================================================================================================================
 
 function bc2_set_expiration_timer(consume)
-    -- if there is already an active timer then reset it
-    for _, active_timer in bc2_current_timers do
+    if buffcheck2_config["expiration"] or buffcheck2_config["expiration"] == nil then
+        -- if there is already an active timer then reset it
+        for _, active_timer in buffcheck2_current_timers do
+            if active_timer.consume == consume then
+                active_timer.elapsed = 0
+                active_timer.given_warning = false
+            end
+        end
+
+        -- otherwise make a new timer
+        local consume_info
+        if bc2_item_buffs[consume] ~= nil then
+            consume_info = bc2_item_buffs[consume]
+        elseif bc2_food_buffs[consume] ~= nil then
+            consume_info = bc2_food_buffs[consume]
+        elseif bc2_weapon_buffs[consume] ~= nil then
+            consume_info = bc2_weapon_buffs[consume]
+        end
+        if consume_info then
+            local timer = {}
+            timer.consume = consume
+            timer.duration = consume_info.duration
+            timer.elapsed = 0
+            timer.since_last_update = 0
+            timer.given_warning = false
+
+            if timer.duration ~= 0 then -- don't add consumes w/ duration 0
+                table.insert(buffcheck2_current_timers, timer)
+            end
+        end
+    end
+end
+
+--======================================================================================================================
+
+function bc2_consume_has_timer(consume)
+    for _, active_timer in buffcheck2_current_timers do
         if active_timer.consume == consume then
-            active_timer.elapsed = 0
-            active_timer.given_warning = false
+            return true
         end
     end
-
-    -- otherwise make a new timer
-    local consume_info
-    if bc2_item_buffs[consume] ~= nil then
-        consume_info = bc2_item_buffs[consume]
-    elseif bc2_food_buffs[consume] ~= nil then
-        consume_info = bc2_food_buffs[consume]
-    elseif bc2_weapon_buffs[consume] ~= nil then
-        consume_info = bc2_weapon_buffs[consume]
-    end
-    if consume_info then
-        local timer = {}
-        timer.consume = consume
-        timer.duration = consume_info.duration
-        timer.elapsed = 0
-        timer.given_warning = false
-
-        if timer.duration ~= 0 then -- don't add consumes w/ duration 0
-            table.insert(bc2_current_timers, timer)
-        end
-    end
+    return false
 end
 
 --======================================================================================================================
@@ -640,7 +680,7 @@ function bc2_test()
     bc2_send_message("bc2_current_consumes")
     bc2_tprint(bc2_current_consumes)]]--
 
-    local consume = "Elixir of the Mongoose"
+    local consume = "Gordok Green Grog"
 
     local consume_info
     if bc2_item_buffs[consume] ~= nil then
@@ -656,9 +696,16 @@ function bc2_test()
         --timer.duration = consume_info.duration
         timer.duration = 10
         timer.elapsed = 0
+        timer.since_last_update = 10.1
         timer.given_warning = false
-        table.insert(bc2_current_timers, timer)
+        table.insert(buffcheck2_current_timers, timer)
     end
+end
+
+function bc2_test2()
+    -- this can cause errors
+    buffcheck2_current_timers[1].elapsed = buffcheck2_current_timers[1].duration - 60
+    bc2_tprint(buffcheck2_current_timers)
 end
 
 --======================================================================================================================
@@ -668,7 +715,7 @@ end
 -- GUI specific functions
 
 
-function bc2_add_item_to_interface(consume, index)
+function bc2_add_item_to_interface(consume, index, is_timer)
     local button, icon, count
     if consume ~= "Interface\\Icons\\Spell_Nature_WispSplode" then
         button = getglobal("BuffCheck2Button"..index)
@@ -684,14 +731,27 @@ function bc2_add_item_to_interface(consume, index)
         end
         if texture then
             icon:SetTexture(texture)
-            local consume_count = bc2_bag_contents[bc2_current_consumes[index]]
-            count:SetText(consume_count) -- still needed for when new items are added
+            local consume_count = bc2_bag_contents[consume]
+            count:SetText(consume_count)
             if string.len(consume_count) == 2 then
                 count:SetPoint("LEFT", button, "RIGHT", -16, -10)
             else
                 count:SetPoint("LEFT", button, "RIGHT", -10, -10)
             end
+            if is_timer then -- the consume is still active but close to expiration
+                local highlight = getglobal("BuffCheck2Button"..index.."Highlight")
+                highlight:Show()
+                button.lockedHighlight = true
+            else
+                local highlight = getglobal("BuffCheck2Button"..index.."Highlight")
+                local duration = getglobal("BuffCheck2Button"..index.."Duration")
+                highlight:Hide()
+                duration:SetText("")
+                button.lockedHighlight = false
+            end
             button:Show()
+
+            button.consume = consume
         else
             bc2_send_message("Error in bc2_add_item_to_interface with consume: " .. consume)
         end
@@ -704,6 +764,8 @@ function bc2_add_item_to_interface(consume, index)
         icon:SetTexture(consume)
         count:SetText("")
         button:Show()
+
+        button.consume = "PlaceHolder"
     end
 end
 
@@ -771,6 +833,10 @@ function bc2_show_tooltip(id)
 
     if consume == nil then
         consume = bc2_food_buffs[bc2_current_consumes[id]]
+    end
+
+    if consume == nil then
+        consume = bc2_weapon_buffs[bc2_current_consumes[id]]
     end
 
     if consume then
@@ -918,6 +984,20 @@ function bc2_rgbToHex(rgb)
     end
 
     return hexadecimal
+end
+
+function bc2_roundToNthDecimal(num, n)
+    local mult = 10^(n or 0)
+    return math.floor(num * mult + 0.5) / mult
+end
+
+function bc2_get_index_in_table(tab, val)
+    for index, value in tab do
+        if value == val then
+            return index
+        end
+    end
+    return nil
 end
 
 --======================================================================================================================

@@ -46,6 +46,18 @@
                         </Anchor>
                     </Anchors>
                 </FontString>
+                <FontString name="$parentDuration" font="GameFontNormal" justifyH="LEFT">
+                    <Size>
+                        <AbsDimension x="20" y="20"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="LEFT" relativeTo="$parentIcon" relativePoint="RIGHT">
+                            <Offset>
+                                <AbsDimension x="-22" y="-0"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
                 <Texture name="$parentHighlight" file="Interface\QuestFrame\UI-QuestLogTitleHighlight" hidden="false" alphaMode="ADD">
                     <Size>
                         <AbsDimension x="32" y="32"/>

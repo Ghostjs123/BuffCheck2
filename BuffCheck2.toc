@@ -3,7 +3,7 @@
 ## Version: 1.0
 ## Notes: An addon to help with consumes
 ## Author: Kaymon
-## SavedVariables: buffcheck2_config, buffcheck2_saved_consumes
+## SavedVariables: buffcheck2_config, buffcheck2_saved_consumes, buffcheck2_current_timers
 BuffCheck2.lua
 BuffCheck2_Data.lua
 BuffCheck2.xml
