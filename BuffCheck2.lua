@@ -9,7 +9,6 @@ bc2_button_count = 25
 bc2_bag_contents = {}
 
 buffcheck2_current_timers = {}
-bc2_time_remaining_on_buffs = {}
 
 bc2_showed_already = false
 
@@ -704,7 +703,7 @@ end
 
 function bc2_test2()
     -- this can cause errors
-    buffcheck2_current_timers[1].elapsed = buffcheck2_current_timers[1].duration - 60
+    --buffcheck2_current_timers[1].elapsed = buffcheck2_current_timers[1].duration - 60
     bc2_tprint(buffcheck2_current_timers)
 end
 

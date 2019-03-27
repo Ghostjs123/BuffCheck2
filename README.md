@@ -10,7 +10,7 @@ If there is nothing to display the interface will display a placeholder and upda
 
 Also gives a five or two minute expiration warning based on the consumes duration. Two minutes for consumes with duration 15min or less, five minutes otherwise.
 Then gives another message when the consume expires.<br/>
-Note: Only creates expiration timers for consumes used directly through the interface.
+Note: Only creates and refreshes expiration timers for consumes used directly through the interface.
 
 Currently supports most* consumes, food buffs, and weapon buffs. If you find one missing
 feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
