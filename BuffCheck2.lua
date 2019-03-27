@@ -344,6 +344,12 @@ function bc2_remove_item_from_saved_list(item_name)
             else
                 table.remove(buffcheck2_saved_consumes, bc2_get_index_in_table(buffcheck2_saved_consumes, item_name))
                 bc2_send_message("BuffCheck2: removed: " .. bc2_item_name_to_item_link(item_name))
+                -- remove any timers that may still exist for the consume
+                for id, active_timer in buffcheck2_current_timers do
+                    if active_timer.consume == item_name then
+                        buffcheck2_current_timers[id] = nil
+                    end
+                end
                 bc2_update_frame()
             end
         end
@@ -400,6 +406,10 @@ end
 function bc2_clear_saved_consumes()
     for k in pairs(buffcheck2_saved_consumes) do
         buffcheck2_saved_consumes[k] = nil
+    end
+    -- also clear all active timers
+    for i = 1, table.getn(buffcheck2_current_timers) do
+        buffcheck2_current_timers[i] = nil
     end
     bc2_update_frame()
 end

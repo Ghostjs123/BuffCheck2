@@ -355,5 +355,9 @@ bc2_weapon_buffs = {
     ["Frost Oil"] = {
         id = 3829,
         duration = 1800
+    },
+    ["Rough Sharpening Stone"] = { -- using it for testing
+        id = 2862,
+        duration = 1800
     }
 }
