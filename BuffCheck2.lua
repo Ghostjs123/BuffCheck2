@@ -12,6 +12,9 @@ buffcheck2_current_timers = {}
 
 bc2_showed_already = false
 
+bc2_current_selected_weapon_buff = ""
+bc2_was_spell_targeting = false
+
 food_buff_textures = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
     "Interface\\Icons\\INV_Gauntlets_19", "Interface\\Icons\\Spell_Nature_ManaRegenTotem",
     "Interface\\Icons\\Spell_Holy_Devotion", "Interface\\Icons\\Spell_Holy_LayOnHands"}
@@ -106,7 +109,14 @@ end
 --======================================================================================================================
 
 function BuffCheck2_OnUpdate()
-    -- OnUpdate is currently only used to manage the expiration timers
+    if SpellIsTargeting() then
+        bc2_was_spell_targeting = true
+    elseif bc2_was_spell_targeting and not SpellIsTargeting() then
+        bc2_hide_weapon_buttons()
+        bc2_was_spell_targeting = false
+    end
+
+    -- handle the expiration timers
     if buffcheck2_config["expiration"] or buffcheck2_config["expiration"] == nil then
         -- arg1 is the time since the last BuffCheck2_OnUpdate() call, BuffCheck2_OnUpdate() gets called every frame
         local needs_update = false
@@ -117,15 +127,15 @@ function BuffCheck2_OnUpdate()
             timer.since_last_update = timer.since_last_update + arg1
             -- check for soon to expire or expire
             if timer.given_warning == false and timer.duration > 900 and timer.duration - timer.elapsed < 300 then -- 5 minutes
-                bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
+                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
                 timer.given_warning = true
                 needs_update = true
             elseif timer.given_warning == false and timer.duration <= 900 and timer.duration - timer.elapsed < 120 then -- 2 minutes
-                bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has 2 minutes remaining"))
+                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has 2 minutes remaining"))
                 timer.given_warning = true
                 needs_update = true
             elseif timer.elapsed > timer.duration then
-                bc2_send_message("BuffCheck2: " .. bc2_name_to_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
+                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
                 table.insert(needs_removed, id)
             end
         end
@@ -239,7 +249,7 @@ function bc2_update_frame()
             if bc2_consume_has_timer(consume) then
                 for index, active_timer in buffcheck2_current_timers do
                     if active_timer.consume == consume then
-                        bc2_send_message("BuffCheck2: " .. bc2_name_to_link(consume) .. string.format(bc2_default_print_format," is not present, removing its timer"))
+                        bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(consume) .. string.format(bc2_default_print_format," is not present, removing its timer"))
                         table.remove(buffcheck2_current_timers, index)
                     end
                 end
@@ -301,10 +311,10 @@ function bc2_add_item_to_saved_list(item_name)
     end
     if bufftexture then
         if contains then
-            bc2_send_message(tostring(item_name) .. " is already added")
+            bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(item_name) .. " is already added")
         else
             table.insert(buffcheck2_saved_consumes, item_name)
-            bc2_send_message("added: " .. tostring(item_name))
+            bc2_send_message("BuffCheck2: added: " .. bc2_item_name_to_item_link(item_name))
             bc2_update_frame()
             bc2_update_item_counts()
         end
@@ -333,10 +343,10 @@ function bc2_remove_item_from_saved_list(item_name)
     end
     if bufftexture then
         if contains == false then
-            bc2_send_message(tostring(item_name) .. " is not added")
+            bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(item_name) .. " is not added")
         else
             table.remove(buffcheck2_saved_consumes, bc2_get_index_in_table(buffcheck2_saved_consumes, item_name))
-            bc2_send_message("removed: " .. tostring(item_name))
+            bc2_send_message("BuffCheck2: removed: " .. bc2_item_name_to_item_link(item_name))
             bc2_update_frame()
         end
     else
@@ -441,7 +451,7 @@ function bc2_player_has_buff(buffname)
                 local id2 = bc2_item_link_to_item_id(offHandLink)
                 if id1 ~= nil then
                     local _, _, _, _, _, sType, _, _ = GetItemInfo(id1)
-                    if(string.sub(sType, 0, 1) == "O") then
+                    if(string.sub(sType, 0, 1) == "O" or string.sub(sType, 0, 1) == "D") then
                         if hasMainHandEnchant == nil then
                             return false
                         end
@@ -453,7 +463,7 @@ function bc2_player_has_buff(buffname)
                 end
                 if id2 ~= nil then
                     local _, _, _, _, _, sType, _, _ = GetItemInfo(id2)
-                    if(string.sub(sType, 0, 1) == "O") then
+                    if(string.sub(sType, 0, 1) == "O" or string.sub(sType, 0, 1) == "D") then
                         if hasOffHandEnchant == nil then
                             return false
                         end
@@ -468,6 +478,7 @@ end
 
 --======================================================================================================================
 
+-- called in bc2_player_has_buff()
 function bc2_is_buff_present(texture, spell_name)
     local x
     local bufftexture
@@ -494,7 +505,7 @@ end
 
 --======================================================================================================================
 
-function bc2_name_to_link(name)
+function bc2_item_name_to_item_link(name)
     for spell_name, spell_info in bc2_item_buffs do
         if spell_name == name  then
             local name, link, quality = GetItemInfo(spell_info.id)
@@ -818,13 +829,59 @@ function bc2_button_onclick(id)
                 local itemname = bc2_item_link_to_item_name(itemLink)
                 if itemname == consume then
                     UseContainerItem(i, j, 1)
-                    bc2_send_message("Using " .. itemLink)
-                    bc2_set_expiration_timer(bc2_current_consumes[id])
-                    table.remove(bc2_current_consumes, id)
+                    bc2_send_message("BuffCheck2: Using " .. itemLink)
+                    if bc2_weapon_buffs[bc2_current_consumes[id]] == nil then -- don't immediatly do this for weapon buffs
+                        bc2_set_expiration_timer(bc2_current_consumes[id])
+                    else
+                        bc2_current_selected_weapon_buff = bc2_current_consumes[id]
+                    end
                     return
                 end
             end
         end
+    end
+end
+
+function bc2_show_weapon_buttons(id)
+    local weapon_button_1 = getglobal("BuffCheck2WeaponButton1")
+    weapon_button_1:ClearAllPoints()
+    weapon_button_1:SetPoint("TOPLEFT", getglobal("BuffCheck2Button"..id), "TOPLEFT", 0, -36)
+
+    local mainHandTexture = GetInventoryItemTexture("player", GetInventorySlotInfo("MainHandSlot"))
+    if mainHandTexture then
+        local weapon_texture_1 = getglobal("BuffCheck2WeaponButton1Icon")
+        weapon_texture_1:SetTexture(mainHandTexture)
+        weapon_button_1:Show()
+    else
+        weapon_button_1:Hide()
+    end
+
+    local weapon_button_2 = getglobal("BuffCheck2WeaponButton2")
+    local offHandTexture = GetInventoryItemTexture("player", GetInventorySlotInfo("SecondaryHandSlot"))
+    if offHandTexture then
+        local weapon_texture_2 = getglobal("BuffCheck2WeaponButton2Icon")
+        weapon_texture_2:SetTexture(offHandTexture)
+        weapon_button_2:Show()
+    else
+        weapon_button_2:Hide()
+    end
+end
+
+function bc2_hide_weapon_buttons()
+    getglobal("BuffCheck2WeaponButton1"):Hide()
+    getglobal("BuffCheck2WeaponButton2"):Hide()
+end
+
+function bc2_weapon_button_onclick(id)
+    -- apply the weapon buff
+    if SpellIsTargeting() then -- make sure the cursor is ready to apply the buff
+        if id == 1 then
+            PickupInventoryItem(GetInventorySlotInfo("MainHandSlot"))
+        else
+            PickupInventoryItem(GetInventorySlotInfo("SecondaryHandSlot"))
+        end
+        ReplaceEnchant()
+        bc2_set_expiration_timer(bc2_current_selected_weapon_buff)
     end
 end
 
@@ -837,12 +894,27 @@ function bc2_show_tooltip(id)
 
     if consume == nil then
         consume = bc2_weapon_buffs[bc2_current_consumes[id]]
+        if consume then
+            bc2_show_weapon_buttons(id)
+        end
     end
 
     if consume then
         local _, link = GetItemInfo(consume.id)
         GameTooltip:SetOwner(getglobal("BuffCheck2Button"..id), "ANCHOR_BOTTOMRIGHT")
         GameTooltip:SetHyperlink(link)
+        GameTooltip:Show()
+    end
+end
+
+function bc2_show_weapon_tooltip(id)
+    if id == 1 then
+        GameTooltip:SetOwner(getglobal("BuffCheck2WeaponButton"..id), "ANCHOR_BOTTOMRIGHT")
+        GameTooltip:SetInventoryItem("player", GetInventorySlotInfo("MainHandSlot"))
+        GameTooltip:Show()
+    else
+        GameTooltip:SetOwner(getglobal("BuffCheck2WeaponButton"..id), "ANCHOR_BOTTOMRIGHT")
+        GameTooltip:SetInventoryItem("player", GetInventorySlotInfo("SecondaryHandSlot"))
         GameTooltip:Show()
     end
 end

@@ -27,6 +27,9 @@
                     getglobal(this:GetName().."Highlight"):Hide()
                 end
                 GameTooltip:Hide()
+                if not SpellIsTargeting() then
+                    bc2_hide_weapon_buttons()
+                end
             </OnLeave>
         </Scripts>
         <Layers>
@@ -58,6 +61,51 @@
                         </Anchor>
                     </Anchors>
                 </FontString>
+                <Texture name="$parentHighlight" file="Interface\QuestFrame\UI-QuestLogTitleHighlight" hidden="false" alphaMode="ADD">
+                    <Size>
+                        <AbsDimension x="32" y="32"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" relativeTo="$parentIcon"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+    </Button>
+
+    <Button name="BuffCheck2WeaponButtonTemplate" virtual="true" enableMouse="true">
+        <Size>
+            <AbsDimension x="32" y="32"/>
+        </Size>
+        <Scripts>
+            <OnLoad>
+                    if not this.lockedHighlight then
+                        getglobal(this:GetName().."Highlight"):Hide()
+                    end
+                    GameTooltip:Hide()
+            </OnLoad>
+            <OnClick>
+                    bc2_weapon_button_onclick(this:GetID())
+            </OnClick>
+            <OnEnter>
+                    getglobal(this:GetName().."Highlight"):Show()
+                    bc2_show_weapon_tooltip(this:GetID())
+            </OnEnter>
+            <OnLeave>
+                    if not this.lockedHighlight then
+                        getglobal(this:GetName().."Highlight"):Hide()
+                    end
+                    GameTooltip:Hide()
+                    if not SpellIsTargeting() then
+                        bc2_hide_weapon_buttons()
+                    end
+            </OnLeave>
+        </Scripts>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture name="$parentIcon"/>
+            </Layer>
+            <Layer level="ARTWORK">
                 <Texture name="$parentHighlight" file="Interface\QuestFrame\UI-QuestLogTitleHighlight" hidden="false" alphaMode="ADD">
                     <Size>
                         <AbsDimension x="32" y="32"/>
@@ -331,6 +379,25 @@
             <Button name="BuffCheck2Button25" inherits="BuffCheck2ButtonTemplate" id="25">
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button24">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+
+            <Button name="BuffCheck2WeaponButton1" inherits="BuffCheck2WeaponButtonTemplate" id="1" hidden="true">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button1">
+                        <Offset>
+                            <AbsDimension x="0" y="-36"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2WeaponButton2" inherits="BuffCheck2WeaponButtonTemplate" id="2" hidden="true">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2WeaponButton1">
                         <Offset>
                             <AbsDimension x="36" y="0"/>
                         </Offset>
