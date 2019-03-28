@@ -1,3 +1,5 @@
+-- todo fix the removal of timers and make sure timers get properly updated
+
 bc2_default_print_format = "|c00f7f26c%s|r"
 
 buffcheck2_config = {}
@@ -37,7 +39,6 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
         bc2_send_message("hide - hides the frame")
         bc2_send_message("scale - scales the frame, default is 100")
         bc2_send_message("clear - clears the saved list of consumes")
-        bc2_send_message("toggle expiration - toggles the display of expiration messages, default is on")
     elseif(string.find(args, "add") ~= nil) then
         local item_name = bc2_get_item_name_from_args(args)
         if(item_name == nil) then
@@ -65,12 +66,6 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
     elseif(string.find(args, "scale") ~= nil) then
         local scale = string.sub(args, string.match(args, "%d+"))
         bc2_scale_interface(tonumber(scale))
-    elseif(string.find(args, "toggle expiration")) then
-        if buffcheck2_config["expiration"] or buffcheck2_config["expiration"] == nil then
-            buffcheck2_config["expiration"] = false
-        else
-            buffcheck2_config["expiration"] = true
-        end
     elseif(string.find(args, "test2") ~= nil) then
         bc2_test2()
     elseif(string.find(args, "test") ~= nil) then
@@ -109,6 +104,7 @@ end
 --======================================================================================================================
 
 function BuffCheck2_OnUpdate()
+    -- hide the weapon buttons if the player started targeting and then stopped
     if SpellIsTargeting() then
         bc2_was_spell_targeting = true
     elseif bc2_was_spell_targeting and not SpellIsTargeting() then
@@ -117,51 +113,55 @@ function BuffCheck2_OnUpdate()
     end
 
     -- handle the expiration timers
-    if buffcheck2_config["expiration"] or buffcheck2_config["expiration"] == nil then
-        -- arg1 is the time since the last BuffCheck2_OnUpdate() call, BuffCheck2_OnUpdate() gets called every frame
-        local needs_update = false
-        for id, timer in buffcheck2_current_timers do
-            -- increment elapsed and since_last_update
-            timer.elapsed = timer.elapsed + arg1
-            timer.since_last_update = timer.since_last_update + arg1
+    -- arg1 is the time since the last BuffCheck2_OnUpdate() call, BuffCheck2_OnUpdate() gets called every frame
+    local needs_update = false
+    local needs_removed = {}
+    for id, timer in buffcheck2_current_timers do
+        -- increment elapsed and since_last_update
+        timer.elapsed = timer.elapsed + arg1
+        timer.since_last_update = timer.since_last_update + arg1
 
-            -- check for soon to expire or expire
-            if timer.given_warning == false and timer.duration > 900 and timer.duration - timer.elapsed < 300 then -- 5 minutes
-                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
-                timer.given_warning = true
-                needs_update = true
-            elseif timer.given_warning == false and timer.duration <= 900 and timer.duration - timer.elapsed < 120 then -- 2 minutes
-                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has 2 minutes remaining"))
-                timer.given_warning = true
-                needs_update = true
-            elseif timer.elapsed > timer.duration then
-                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
-                buffcheck2_current_timers[id] = nil
-            end
+        -- check for soon to expire or expire
+        if timer.given_warning == false and timer.duration > 900 and timer.duration - timer.elapsed < 300 then -- 5 minutes
+            bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
+            timer.given_warning = true
+            needs_update = true
+        elseif timer.given_warning == false and timer.duration <= 900 and timer.duration - timer.elapsed < 120 then -- 2 minutes
+            bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has 2 minutes remaining"))
+            timer.given_warning = true
+            needs_update = true
+        elseif timer.elapsed > timer.duration then
+            bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
+            table.insert(needs_removed, id)
         end
+    end
 
-        -- update the frame to add any soon to expire timers to the interface
-        if needs_update then
-            bc2_update_frame()
-        end
+    local i = table.getn(needs_removed)
+    while(i > 0) do
+        table.remove(buffcheck2_current_timers, needs_removed[i])
+    end
 
-        -- finally update the remaining time on soon to expire consumes
-        -- need to wait until the bc2_update_frame() call before doing this so that the consume is in the interface
-        for _, active_timer in buffcheck2_current_timers do
-            if active_timer.given_warning then
-                if active_timer.since_last_update > 1 then -- update every second instead of every frame
-                    local button, duration
-                    for i = 1, table.getn(bc2_current_consumes) do
-                        button = getglobal("BuffCheck2Button"..i)
-                        if button.consume == active_timer.consume then
-                            duration = getglobal("BuffCheck2Button"..i.."Duration")
-                            local remainder = floor(active_timer.duration - active_timer.elapsed)
-                            if remainder > 60 then
-                                remainder = floor(remainder / 60 + 0.5)
-                            end
-                            duration:SetText(remainder)
-                            active_timer.since_last_update = 0
+    -- update the frame to add any soon to expire timers to the interface
+    if needs_update then
+        bc2_update_frame()
+    end
+
+    -- finally update the remaining time on soon to expire consumes
+    -- need to wait until the bc2_update_frame() call before doing this so that the consume is in the interface
+    for _, active_timer in buffcheck2_current_timers do
+        if active_timer.given_warning then
+            if active_timer.since_last_update > 1 then -- update every second instead of every frame
+                local button, duration
+                for i = 1, table.getn(bc2_current_consumes) do
+                    button = getglobal("BuffCheck2Button"..i)
+                    if button.consume == active_timer.consume then
+                        duration = getglobal("BuffCheck2Button"..i.."Duration")
+                        local remainder = floor(active_timer.duration - active_timer.elapsed)
+                        if remainder > 60 then
+                            remainder = floor(remainder / 60)
                         end
+                        duration:SetText(remainder)
+                        active_timer.since_last_update = 0
                     end
                 end
             end
@@ -231,17 +231,8 @@ function bc2_update_frame()
         -- add any missing consumes
         if has_buff == false then
             bc2_current_consumes[count] = consume
-            -- also need to remove any active timers for the consume in case the player clicked the buff off
-            if bc2_consume_has_timer(consume) then
-                for index, active_timer in buffcheck2_current_timers do
-                    if active_timer.consume == consume then
-                        bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(consume) .. string.format(bc2_default_print_format," is not present, removing its timer"))
-                        table.remove(buffcheck2_current_timers, index)
-                    end
-                end
-            end
             count = count + 1
-        -- add the expiration timer for the consume to current_consumes if it exists
+        -- add the consume to current_consumes if it will expire soon
         elseif has_buff == true and bc2_consume_has_timer(consume) then
             for _, active_timer in buffcheck2_current_timers do
                 if active_timer.given_warning and active_timer.consume == consume then
@@ -347,7 +338,7 @@ function bc2_remove_item_from_saved_list(item_name)
                 -- remove any timers that may still exist for the consume
                 for id, active_timer in buffcheck2_current_timers do
                     if active_timer.consume == item_name then
-                        buffcheck2_current_timers[id] = nil
+                        table.remove(buffcheck2_current_timers, id)
                     end
                 end
                 bc2_update_frame()
@@ -408,10 +399,14 @@ function bc2_clear_saved_consumes()
         buffcheck2_saved_consumes[k] = nil
     end
     -- also clear all active timers
-    for i = 1, table.getn(buffcheck2_current_timers) do
-        buffcheck2_current_timers[i] = nil
-    end
+    bc2_clear_timers()
     bc2_update_frame()
+end
+
+function bc2_clear_timers()
+    while(table.getn(buffcheck2_current_timers) > 0) do
+        table.remove(buffcheck2_current_timers, 1)
+    end
 end
 
 function bc2_clear_current_consumes()
@@ -662,7 +657,9 @@ function bc2_update_bag_contents()
                 if bc2_bag_contents[itemname] ~= nil then
                     bc2_bag_contents[itemname] = bc2_bag_contents[itemname] + itemCount
                 else
-                    bc2_bag_contents[itemname] = itemCount
+                    if itemname ~= nil then -- got an error here when i logged on a new char, added this check
+                        bc2_bag_contents[itemname] = itemCount
+                    end
                 end
             end
         end
@@ -672,15 +669,15 @@ end
 --======================================================================================================================
 
 function bc2_set_expiration_timer(consume)
-    if buffcheck2_config["expiration"] or buffcheck2_config["expiration"] == nil then
-        -- if there is already an active timer then reset it
+    -- if there is already an active timer then reset it
+    if bc2_consume_has_timer(consume) then
         for _, active_timer in buffcheck2_current_timers do
             if active_timer.consume == consume then
                 active_timer.elapsed = 0
                 active_timer.given_warning = false
             end
         end
-
+    else
         -- otherwise make a new timer
         local consume_info
         if bc2_item_buffs[consume] ~= nil then
@@ -749,7 +746,15 @@ end
 function bc2_test2()
     -- this can cause errors
     --buffcheck2_current_timers[1].elapsed = buffcheck2_current_timers[1].duration - 60
-    bc2_tprint(buffcheck2_current_timers)
+    bc2_set_expiration_timer("Elixir of Superior Defense")
+    bc2_set_expiration_timer("Elixir of Greater Defense")
+    bc2_set_expiration_timer("Scroll of Protection IV")
+    --bc2_tprint(buffcheck2_current_timers)
+    bc2_send_message(table.getn(buffcheck2_current_timers))
+    while(table.getn(buffcheck2_current_timers) > 0) do
+        table.remove(buffcheck2_current_timers, 1)
+    end
+    bc2_send_message(table.getn(buffcheck2_current_timers))
 end
 
 --======================================================================================================================
@@ -873,6 +878,7 @@ function bc2_button_onclick(id)
     end
 end
 
+-- id is the current button being hovered over
 function bc2_show_weapon_buttons(id)
     local weapon_button_1 = getglobal("BuffCheck2WeaponButton1")
     weapon_button_1:ClearAllPoints()
@@ -903,6 +909,7 @@ function bc2_hide_weapon_buttons()
     getglobal("BuffCheck2WeaponButton2"):Hide()
 end
 
+-- id is either 1 for mh or 2 for oh
 function bc2_weapon_button_onclick(id)
     -- apply the weapon buff
     if SpellIsTargeting() then -- make sure the cursor is ready to apply the buff

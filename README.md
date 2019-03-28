@@ -46,10 +46,6 @@ feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
 /bc2 **clear**
 
   - clears the list of saved consumes
-  
-/bc2 **toggle expiration**
-
-  - toggles the display of expiration messages, default is on
 
 This addon was made by Kaymon \<Scuba Cops> for the Northdale Vanilla private server. If you find
 any bugs or issues with the addon contact him in game.
