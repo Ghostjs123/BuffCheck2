@@ -115,8 +115,9 @@ function BuffCheck2_OnUpdate()
     -- handle the expiration timers
     -- arg1 is the time since the last BuffCheck2_OnUpdate() call, BuffCheck2_OnUpdate() gets called every frame
     local needs_update = false
-    local needs_removed = {}
-    for id, timer in buffcheck2_current_timers do
+    local id = table.getn(buffcheck2_current_timers)
+    while(id > 0) do
+        local timer = buffcheck2_current_timers[id]
         -- increment elapsed and since_last_update
         timer.elapsed = timer.elapsed + arg1
         timer.since_last_update = timer.since_last_update + arg1
@@ -132,13 +133,9 @@ function BuffCheck2_OnUpdate()
             needs_update = true
         elseif timer.elapsed > timer.duration then
             bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
-            table.insert(needs_removed, id)
+            table.remove(buffcheck2_current_timers, id)
         end
-    end
-
-    local i = table.getn(needs_removed)
-    while(i > 0) do
-        table.remove(buffcheck2_current_timers, needs_removed[i])
+        id = id - 1
     end
 
     -- update the frame to add any soon to expire timers to the interface
@@ -787,10 +784,11 @@ function bc2_add_item_to_interface(consume, index, is_timer)
             else
                 count:SetPoint("LEFT", button, "RIGHT", -10, -10)
             end
-            if is_timer then -- the consume is still active but close to expiration
+            if is_timer == true then -- the consume is still active but close to expiration
                 local highlight = getglobal("BuffCheck2Button"..index.."Highlight")
                 highlight:Show()
                 button.lockedHighlight = true
+                bc2_send_message("set " .. tostring(index) .. " to on")
             else
                 local highlight = getglobal("BuffCheck2Button"..index.."Highlight")
                 local duration = getglobal("BuffCheck2Button"..index.."Duration")
