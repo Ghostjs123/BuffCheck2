@@ -767,13 +767,16 @@ function bc2_add_item_to_interface(consume, index, is_timer)
         button = getglobal("BuffCheck2Button"..index)
         icon = getglobal("BuffCheck2Button"..index.."Icon")
         count = getglobal("BuffCheck2Button"..index.."Count")
-        local texture
+        local texture, dont_lock_highlight
         if bc2_item_buffs[consume] then
             texture = bc2_GetTextureByID(bc2_item_buffs[consume].id)
+            dont_lock_highlight = false
         elseif bc2_food_buffs[consume] then
             texture = bc2_GetTextureByID(bc2_food_buffs[consume].id)
+            dont_lock_highlight = false
         elseif bc2_weapon_buffs[consume] then
             texture = bc2_GetTextureByID(bc2_weapon_buffs[consume].id)
+            dont_lock_highlight = true
         end
         if texture then
             icon:SetTexture(texture)
@@ -787,8 +790,9 @@ function bc2_add_item_to_interface(consume, index, is_timer)
             if is_timer == true then -- the consume is still active but close to expiration
                 local highlight = getglobal("BuffCheck2Button"..index.."Highlight")
                 highlight:Show()
-                button.lockedHighlight = true
-                bc2_send_message("set " .. tostring(index) .. " to on")
+                if not dont_lock_highlight then
+                    button.lockedHighlight = true
+                end
             else
                 local highlight = getglobal("BuffCheck2Button"..index.."Highlight")
                 local duration = getglobal("BuffCheck2Button"..index.."Duration")
@@ -809,6 +813,7 @@ function bc2_add_item_to_interface(consume, index, is_timer)
         icon:SetTexture(consume)
         count:SetText("")
         button:Show()
+        button.lockedHighlight = false
 
         button.consume = "PlaceHolder"
     end
