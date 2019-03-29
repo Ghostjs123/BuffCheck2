@@ -129,6 +129,13 @@ bc2_item_buffs = {
         duration = 900
     },
 
+    -- health regen buffs
+    ["Major Troll's Blood Potion"] = {
+        buff_path = { "Interface\\Icons\\INV_Potion_79" },
+        id = 20004,
+        duration = 3600
+    },
+
     -- mana regen buffs
     ["Mageblood Potion"] = {
         buff_path = { "Interface\\Icons\\INV_Drink_45" },
