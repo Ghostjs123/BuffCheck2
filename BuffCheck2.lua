@@ -427,9 +427,9 @@ function bc2_player_has_buff(buffname)
     local bufftexture = bc2_item_buffs[buffname]
     if bufftexture then
         if bufftexture.buff_name ~= nil then
-            return bc2_is_buff_present(bufftexture.buff_path[1], bufftexture.buff_name)
+            return bc2_is_buff_present(bufftexture.buff_path, bufftexture.buff_name)
         else
-            return bc2_is_buff_present(bufftexture.buff_path[1])
+            return bc2_is_buff_present(bufftexture.buff_path)
         end
     else
         bufftexture = bc2_food_buffs[buffname]
