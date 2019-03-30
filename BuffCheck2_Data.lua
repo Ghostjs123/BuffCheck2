@@ -138,7 +138,7 @@ bc2_item_buffs = {
 
     -- mana regen buffs
     ["Mageblood Potion"] = {
-        buff_path = "Interface\\Icons\\INV_Drink_45",
+        buff_path = "Interface\\Icons\\INV_Potion_45",
         id = 20007,
         duration = 3600
     },
@@ -158,6 +158,11 @@ bc2_item_buffs = {
         buff_path = "Interface\\Icons\\INV_Potion_46",
         id = 9264,
         duration = 3600
+    },
+    ["Elixir of Frost Power"] = {
+        buff_path = "Interface\\Icons\\INV_Potion_03",
+        id = 17708,
+        duration = 1800
     },
 
     -- flasks
@@ -329,11 +334,11 @@ bc2_weapon_buffs = {
     },
     ["Consecrated Sharpening Stone"] = {
         id = 23122,
-        duration = 1800
+        duration = 3600
     },
     ["Blessed Wizard Oil"] = {
         id = 23123,
-        duration = 1800
+        duration = 3600
     },
     ["Brilliant Wizard Oil"] = {
         id = 20749,

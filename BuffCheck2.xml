@@ -20,6 +20,9 @@
             </OnClick>
             <OnEnter>
                 getglobal(this:GetName().."Highlight"):Show()
+                if this.texture == "Interface\\Icons\\Spell_Nature_WispSplode" then
+                    bc2_update_texture(this:GetID())
+                end
                 bc2_show_tooltip(this:GetID())
             </OnEnter>
             <OnLeave>
@@ -56,7 +59,7 @@
                     <Anchors>
                         <Anchor point="LEFT" relativeTo="$parentIcon" relativePoint="RIGHT">
                             <Offset>
-                                <AbsDimension x="-22" y="-0"/>
+                                <AbsDimension x="-24" y="-0"/>
                             </Offset>
                         </Anchor>
                     </Anchors>

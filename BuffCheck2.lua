@@ -1,5 +1,3 @@
--- todo fix the removal of timers and make sure timers get properly updated
-
 bc2_default_print_format = "|c00f7f26c%s|r"
 
 buffcheck2_config = {}
@@ -156,11 +154,12 @@ function BuffCheck2_OnUpdate()
                         local remainder = floor(active_timer.duration - active_timer.elapsed)
                         if remainder > 60 then
                             remainder = floor(remainder / 60)
+                            remainder = tostring(remainder) .. "m"
                         end
                         duration:SetText(remainder)
-                        active_timer.since_last_update = 0
                     end
                 end
+                active_timer.since_last_update = 0
             end
         end
     end
@@ -286,17 +285,15 @@ function bc2_add_item_to_saved_list(item_name)
     if bufftexture then
         local itemname, link, quality = GetItemInfo(bufftexture.id)
         if itemname == nil then
-            bc2_send_message("BuffCheck2: error - " .. tostring(item_name) .. " is not in your wdb, cannot be added")
-            return
+            BuffCheck2Tooltip:SetHyperlink("item:"..bufftexture.id..":0:0:0") -- this will query the server and add it to the wdb if found
+        end
+        if contains then
+            bc2_send_message("BuffCheck2: " .. item_name .. string.format(bc2_default_print_format, " is already added"))
         else
-            if contains then
-                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(item_name) .. string.format(bc2_default_print_format, " is already added"))
-            else
-                table.insert(buffcheck2_saved_consumes, item_name)
-                bc2_send_message("BuffCheck2: added: " .. bc2_item_name_to_item_link(item_name))
-                bc2_update_frame()
-                bc2_update_item_counts()
-            end
+            table.insert(buffcheck2_saved_consumes, item_name)
+            bc2_send_message("BuffCheck2: added: " .. item_name)
+            bc2_update_frame()
+            bc2_update_item_counts()
         end
     else
         bc2_send_message("Could not find " .. item_name .. " in BuffCheck2_Data.lua")
@@ -322,24 +319,18 @@ function bc2_remove_item_from_saved_list(item_name)
         bufftexture = bc2_weapon_buffs[item_name]
     end
     if bufftexture then
-        local itemname, link, quality = GetItemInfo(bufftexture.id)
-        if itemname == nil then
-            bc2_send_message("BuffCheck2: error - " .. tostring(item_name) .. " is not in your wdb, cannot be removed")
-            return
+        if contains == false then
+            bc2_send_message("BuffCheck2: " .. item_name .. string.format(bc2_default_print_format, " is not added"))
         else
-            if contains == false then
-                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(item_name) .. string.format(bc2_default_print_format, " is not added"))
-            else
-                table.remove(buffcheck2_saved_consumes, bc2_get_index_in_table(buffcheck2_saved_consumes, item_name))
-                bc2_send_message("BuffCheck2: removed: " .. bc2_item_name_to_item_link(item_name))
-                -- remove any timers that may still exist for the consume
-                for id, active_timer in buffcheck2_current_timers do
-                    if active_timer.consume == item_name then
-                        table.remove(buffcheck2_current_timers, id)
-                    end
+            table.remove(buffcheck2_saved_consumes, bc2_get_index_in_table(buffcheck2_saved_consumes, item_name))
+            bc2_send_message("BuffCheck2: removed: " .. item_name)
+            -- remove any timers that may still exist for the consume
+            for id, active_timer in buffcheck2_current_timers do
+                if active_timer.consume == item_name then
+                    table.remove(buffcheck2_current_timers, id)
                 end
-                bc2_update_frame()
             end
+            bc2_update_frame()
         end
     else
        bc2_send_message("Could not find " .. item_name .. " in BuffCheck2_Data.lua")
@@ -378,7 +369,7 @@ function bc2_show_frame(should_update)
     buffcheck2_config["showing"] = true
     BuffCheck2Frame:Show()
     bc2_send_message("BuffCheck2 - Interface showing")
-    if should_update then
+    if should_update == true or should_update == nil then
         bc2_update_frame()
     end
 end
@@ -398,6 +389,7 @@ function bc2_clear_saved_consumes()
     -- also clear all active timers
     bc2_clear_timers()
     bc2_update_frame()
+    bc2_send_message("BuffCheck2: cleared saved consumes")
 end
 
 function bc2_clear_timers()
@@ -451,7 +443,9 @@ function bc2_player_has_buff(buffname)
                 local id2 = bc2_item_link_to_item_id(offHandLink)
                 if id1 ~= nil then
                     local _, _, _, _, _, sType, _, _ = GetItemInfo(id1)
-                    if(string.sub(sType, 0, 1) == "O" or string.sub(sType, 0, 1) == "D") then
+                    if sType == nil then
+                        return false
+                    elseif(string.sub(sType, 0, 1) == "O" or string.sub(sType, 0, 1) == "D") then
                         if hasMainHandEnchant == nil then
                             return false
                         end
@@ -515,7 +509,8 @@ function bc2_item_name_to_item_link(name)
             local r,g,b = GetItemQualityColor(quality)
             if itemname == nil then
                 bc2_send_message("BuffCheck2: error - " .. name .. " is not in your wdb")
-                return
+                bc2_remove_item_from_saved_list(name)
+                return name
             else
                 return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..itemname.."]|h|r"
             end
@@ -531,6 +526,8 @@ function bc2_item_name_to_item_link(name)
             local r,g,b = GetItemQualityColor(quality)
             if itemname == nil then
                 bc2_send_message("BuffCheck2: error - " .. name .. " is not in your wdb")
+                bc2_remove_item_from_saved_list(name)
+                return name
             else
                 return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..itemname.."]|h|r"
             end
@@ -546,6 +543,8 @@ function bc2_item_name_to_item_link(name)
             local r,g,b = GetItemQualityColor(quality)
             if itemname == nil then
                 bc2_send_message("BuffCheck2: error - " .. name .. " is not in your wdb")
+                bc2_remove_item_from_saved_list(name)
+                return name
             else
                 return "|cff" ..bc2_rgbToHex({r, g, b}).."|H"..link.."|h["..itemname.."]|h|r"
             end
@@ -618,6 +617,7 @@ end
 function bc2_GetTextureByID(id)
     local _, _, _, _, _, _, _, _, texture = GetItemInfo(id)
     if texture == nil then
+        BuffCheck2Tooltip:SetHyperlink("item:"..id..":0:0:0") -- this will query the server and add it to the wdb if found
         return "Interface\\Icons\\Spell_Nature_WispSplode"
     end
     return texture
@@ -780,6 +780,7 @@ function bc2_add_item_to_interface(consume, index, is_timer)
         end
         if texture then
             icon:SetTexture(texture)
+            button.texture = texture
             local consume_count = bc2_bag_contents[consume]
             count:SetText(consume_count)
             if string.len(consume_count) == 2 then
@@ -811,6 +812,7 @@ function bc2_add_item_to_interface(consume, index, is_timer)
         icon = getglobal("BuffCheck2Button1Icon")
         count = getglobal("BuffCheck2Button1Count")
         icon:SetTexture(consume)
+        button.texture = "Interface\\Icons\\Spell_Nature_WispSplode"
         count:SetText("")
         button:Show()
         button.lockedHighlight = false
@@ -942,9 +944,12 @@ function bc2_show_tooltip(id)
 
     if consume then
         local _, link = GetItemInfo(consume.id)
-        GameTooltip:SetOwner(getglobal("BuffCheck2Button"..id), "ANCHOR_BOTTOMRIGHT")
-        GameTooltip:SetHyperlink(link)
-        GameTooltip:Show()
+        -- the only time this will be nil is if the interface has a consume in it that is not in the players wdb
+        if link ~= nil then
+            GameTooltip:SetOwner(getglobal("BuffCheck2Button"..id), "ANCHOR_BOTTOMRIGHT")
+            GameTooltip:SetHyperlink(link)
+            GameTooltip:Show()
+        end
     end
 end
 
@@ -960,13 +965,36 @@ function bc2_show_weapon_tooltip(id)
     end
 end
 
+function bc2_update_texture(id)
+    local button = getglobal("BuffCheck2Button"..id)
+    local icon = getglobal("BuffCheck2Button"..id.."Icon")
+    local consume = button.consume
+    local consume_info
+    if bc2_item_buffs[consume] ~= nil then
+        consume_info = bc2_item_buffs[consume]
+    elseif bc2_food_buffs[consume] ~= nil then
+        consume_info = bc2_food_buffs[consume]
+    elseif bc2_weapon_buffs[consume] ~= nil then
+        consume_info = bc2_weapon_buffs[consume]
+    end
+    if consume_info ~= nil then
+        local texture = bc2_GetTextureByID(consume_info.id)
+        if texture == "Interface\\Icons\\Spell_Nature_WispSplode" then
+            bc2_send_message("BuffCheck2: " .. consume .. " cannot be found on this server")
+            bc2_remove_item_from_saved_list(consume)
+        else
+            icon:SetTexture(texture)
+        end
+    end
+end
+
 function bc2_scale_interface(scale)
     local map_result = scale / 100
     BuffCheck2Frame:SetScale(map_result)
     BuffCheck2Frame:ClearAllPoints()
     BuffCheck2Frame:SetPoint("CENTER", "UIParent")
     buffcheck2_config["scale"] = scale
-    bc2_send_message("scaled to " .. scale)
+    bc2_send_message("BuffCheck2: scaled to " .. scale)
 end
 
 --======================================================================================================================
