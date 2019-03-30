@@ -693,8 +693,9 @@ function bc2_set_expiration_timer(consume)
             consume_info = bc2_item_buffs[consume]
         elseif bc2_food_buffs[consume] ~= nil then
             consume_info = bc2_food_buffs[consume]
+        elseif bc2_weapon_buffs[consume] ~= nil then
+            consume_info = bc2_weapon_buffs[consume]
         end
-        -- intentionally not doing weapon buffs
         if consume_info then
             local timer = {}
             timer.consume = consume
