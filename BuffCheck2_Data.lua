@@ -270,6 +270,13 @@ bc2_item_buffs = {
         buff_path = "Interface\\Icons\\INV_Potion_40",
         id = 13453,
         duration = 3600
+    },
+
+    -- test consume
+    ["Juju Flurry"] = {
+        buff_path = "Interface\\Icons\\INV_Misc_MonsterScales_17",
+        id = 12450,
+        duration = 0
     }
 }
 

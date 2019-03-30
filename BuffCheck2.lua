@@ -95,7 +95,6 @@ function BuffCheck2_OnEvent(event)
     elseif(event == "BAG_UPDATE") then
         bc2_update_bag_contents()
         bc2_update_item_counts()
-        bc2_set_item_cooldowns()
     end
 end
 
@@ -239,6 +238,17 @@ function bc2_update_frame()
         end
     end
 
+    -- if the consume is not present and the timer has been active for more than 30 seconds then remove the timer
+    local i = table.getn(buffcheck2_current_timers)
+    while i > 0 do
+        if bc2_player_has_buff(buffcheck2_current_timers[i].consume) == false then
+            if buffcheck2_current_timers[i].since_last_update > 30 then
+                table.remove(buffcheck2_current_timers, i)
+            end
+        end
+        i = i - 1
+    end
+
     -- display the current missing consumes
     count = 1
     for _, consume in bc2_current_consumes do
@@ -261,6 +271,8 @@ function bc2_update_frame()
     else
         BuffCheck2Frame:SetWidth(54 + (count - 2) * 36)
     end
+
+    bc2_set_item_cooldowns()
 end
 
 --======================================================================================================================
@@ -681,9 +693,8 @@ function bc2_set_expiration_timer(consume)
             consume_info = bc2_item_buffs[consume]
         elseif bc2_food_buffs[consume] ~= nil then
             consume_info = bc2_food_buffs[consume]
-        elseif bc2_weapon_buffs[consume] ~= nil then
-            consume_info = bc2_weapon_buffs[consume]
         end
+        -- intentionally not doing weapon buffs
         if consume_info then
             local timer = {}
             timer.consume = consume
@@ -849,7 +860,7 @@ function bc2_set_item_cooldowns()
                 local itemname = bc2_item_link_to_item_name(itemLink)
                 for k = 1, table.getn(bc2_current_consumes) do
                     if bc2_current_consumes[k] == itemname then
-                        local _, duration, _ = GetContainerItemCooldown(i, j)
+                        local starttime, duration, _ = GetContainerItemCooldown(i, j)
                         local button = getglobal("BuffCheck2Button"..k)
                         button.cooldown(GetTime(), duration)
                     end
