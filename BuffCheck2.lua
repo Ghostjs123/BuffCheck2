@@ -37,6 +37,8 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
         bc2_send_message("hide - hides the frame")
         bc2_send_message("scale - scales the frame, default is 100")
         bc2_send_message("clear - clears the saved list of consumes")
+        bc2_send_message("vertical - makes the frame vertical")
+        bc2_send_message("horizontal - makes the frame horizontal")
     elseif(string.find(args, "add") ~= nil) then
         local item_name = bc2_get_item_name_from_args(args)
         if(item_name == nil) then
@@ -64,6 +66,10 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
     elseif(string.find(args, "scale") ~= nil) then
         local scale = string.sub(args, string.match(args, "%d+"))
         bc2_scale_interface(tonumber(scale))
+    elseif(string.find(args, "vertical") ~= nil) then
+        bc2_change_to_vertical()
+    elseif(string.find(args, "horizontal") ~= nil) then
+        bc2_change_to_horizontal()
     elseif(string.find(args, "test2") ~= nil) then
         bc2_test2()
     elseif(string.find(args, "test") ~= nil) then
@@ -208,6 +214,12 @@ function bc2_init()
     -- set the OnUpdate event
     BuffCheck2Frame:SetScript("OnUpdate", BuffCheck2_OnUpdate)
 
+    if buffcheck2_config["orientation"] == "vertical" then
+        bc2_change_to_vertical()
+    else
+        bc2_change_to_horizontal()
+    end
+
     this:UnregisterEvent("VARIABLES_LOADED")
     bc2_send_message("BuffCheck2 - Init successful")
 end
@@ -264,12 +276,17 @@ function bc2_update_frame()
         end
     end
 
-    -- if no missing consumes display the placeholder, also resize the frame
+    -- if no missing consumes display the placeholder and resize the frame
     if table.getn(bc2_current_consumes) == 0 then
         bc2_add_item_to_interface("Interface\\Icons\\Spell_Nature_WispSplode")
         BuffCheck2Frame:SetWidth(54)
+        BuffCheck2Frame:SetHeight(54)
+    elseif buffcheck2_config["orientation"] == "vertical" then
+        BuffCheck2Frame:SetWidth(54)
+        BuffCheck2Frame:SetHeight(54 + (table.getn(bc2_current_consumes) - 1) * 36)
     else
-        BuffCheck2Frame:SetWidth(54 + (count - 2) * 36)
+        BuffCheck2Frame:SetWidth(54 + (table.getn(bc2_current_consumes) - 1) * 36)
+        BuffCheck2Frame:SetHeight(54)
     end
 
     bc2_set_item_cooldowns()
@@ -872,6 +889,12 @@ function bc2_set_item_cooldowns()
             end
         end
     end
+
+    for i = 1, table.getn(bc2_current_consumes) do
+        if bc2_bag_contents[bc2_current_consumes[i]] == 0 then
+            getglobal("BuffCheck2Button"..i).cooldown(GetTime(), 0)
+        end
+    end
 end
 
 function bc2_button_onclick(id)
@@ -1011,6 +1034,30 @@ function bc2_scale_interface(scale)
     BuffCheck2Frame:SetPoint("CENTER", "UIParent")
     buffcheck2_config["scale"] = scale
     bc2_send_message("BuffCheck2: scaled to " .. scale)
+end
+
+function bc2_change_to_vertical()
+    buffcheck2_config["orientation"] = "vertical"
+    local button
+    for i = 2, bc2_button_count do
+        button = getglobal("BuffCheck2Button"..i)
+        button:ClearAllPoints()
+        button:SetPoint("TOPLEFT", getglobal("BuffCheck2Button"..tostring(i-1)), "TOPLEFT", 0, -36)
+    end
+    BuffCheck2Frame:SetWidth(54)
+    BuffCheck2Frame:SetHeight(54 + (table.getn(bc2_current_consumes) - 1) * 36)
+end
+
+function bc2_change_to_horizontal()
+    buffcheck2_config["orientation"] = "horizontal"
+    local button
+    for i = 2, bc2_button_count do
+        button = getglobal("BuffCheck2Button"..i)
+        button:ClearAllPoints()
+        button:SetPoint("TOPLEFT", getglobal("BuffCheck2Button"..tostring(i-1)), "TOPLEFT", 36, 0)
+    end
+    BuffCheck2Frame:SetWidth(54 + (table.getn(bc2_current_consumes) - 1) * 36)
+    BuffCheck2Frame:SetHeight(54)
 end
 
 --======================================================================================================================

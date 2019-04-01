@@ -217,29 +217,37 @@ bc2_item_buffs = {
         id = 12455,
         duration = 600
     },
-        -- greater prot pots
+
+    --  prot pots
     ["Greater Shadow Protection Potion"] = {
-        buff_path = "Interface\\Icons\\INV_Potion_23",
+        buff_path = "Interface\\Icons\\Spell_Shadow_RagingScream",
         id = 13459,
         duration = 0
     },
     ["Greater Fire Protection Potion"] = {
-        buff_path = "Interface\\Icons\\INV_Potion_24",
+        buff_path = "Interface\\Icons\\Spell_Fire_FireArmor",
+        buff_name = "Fire Protection",
         id = 13457,
         duration = 0
     },
     ["Greater Nature Protection Potion"] = {
-        buff_path = "Interface\\Icons\\INV_Potion_22",
+        buff_path = "Interface\\Icons\\Spell_Nature_SpiritArmor",
         id = 13458,
         duration = 0
     },
+    ["Nature Protection Potion"] = {
+        buff_path = "Interface\\Icons\\Spell_Nature_SpiritArmor",
+        id = 6052,
+        duration = 0
+    },
     ["Greater Arcane Protection Potion"] = {
-        buff_path = "Interface\\Icons\\INV_Potion_83",
+        buff_path = "Interface\\Icons\\Spell_Holy_PrayerOfHealing02",
         id = 13461,
         duration = 0
     },
     ["Greater Frost Protection Potion"] = {
-        buff_path = "Interface\\Icons\\INV_Potion_20",
+        buff_path = "Interface\\Icons\\Spell_Frost_ChillingArmor",
+        buff_name = "Frost Protection",
         id = 13456,
         duration = 0
     },
@@ -270,6 +278,20 @@ bc2_item_buffs = {
         buff_path = "Interface\\Icons\\INV_Potion_40",
         id = 13453,
         duration = 3600
+    },
+
+    -- deflectors
+    ["Flame Deflector"] = {
+        buff_path = "Interface\\Icons\\Spell_Fire_FireArmor",
+        buff_name = "Fire Resistance",
+        id = 4376,
+        duration = 0
+    },
+    ["Ice Deflector"] = {
+        buff_path = "Interface\\Icons\\Spell_Frost_ChillingArmor",
+        buff_name = "Frost Resistance",
+        id = 4386,
+        duration = 0
     },
 
     -- test consume
