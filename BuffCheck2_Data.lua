@@ -267,6 +267,11 @@ bc2_item_buffs = {
         id = 12459,
         duration = 0
     },
+    ["Restorative Potion"] = {
+        buff_path = "Interface\\Icons\\Spell_Holy_DispelMagic",
+        id = 9030,
+        duration = 0
+    },
 
     -- additional consumes (always bad)
     ["Elixir of the Sages"] = {
@@ -340,6 +345,10 @@ bc2_food_buffs = {
     },
     ["Blessed Sunfruit Juice"] = {
         id = 13813,
+        duration = 600
+    },
+    ["Runn Tum Tuber Surprise"] = {
+        id = 18254,
         duration = 600
     }
 }
