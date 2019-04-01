@@ -861,9 +861,12 @@ function bc2_set_item_cooldowns()
                 local itemname = bc2_item_link_to_item_name(itemLink)
                 for k = 1, table.getn(bc2_current_consumes) do
                     if bc2_current_consumes[k] == itemname then
-                        local starttime, duration, _ = GetContainerItemCooldown(i, j)
-                        local button = getglobal("BuffCheck2Button"..k)
-                        button.cooldown(GetTime(), duration)
+                        -- it was putting near expiration consumes on gcd when abilities were used
+                        if not bc2_consume_has_timer(itemname) then
+                            local starttime, duration, _ = GetContainerItemCooldown(i, j)
+                            local button = getglobal("BuffCheck2Button"..k)
+                            button.cooldown(starttime, duration)
+                        end
                     end
                 end
             end
@@ -996,6 +999,7 @@ function bc2_update_texture(id)
             bc2_remove_item_from_saved_list(consume)
         else
             icon:SetTexture(texture)
+            button.texture = texture
         end
     end
 end
