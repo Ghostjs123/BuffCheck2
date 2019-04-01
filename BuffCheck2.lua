@@ -872,11 +872,11 @@ function bc2_set_item_cooldowns()
             if(itemLink ~= nil) then
                 local itemname = bc2_item_link_to_item_name(itemLink)
                 for k = 1, table.getn(bc2_current_consumes) do
-                    if bc2_current_consumes[k] == itemname then
+                    local button = getglobal("BuffCheck2Button"..k)
+                    if button.consume == itemname then
                         -- it was putting near expiration consumes on gcd when abilities were used
                         if not bc2_consume_has_timer(itemname) then
                             local starttime, duration, _ = GetContainerItemCooldown(i, j)
-                            local button = getglobal("BuffCheck2Button"..k)
                             button.cooldown(starttime, duration)
                         end
                     end
