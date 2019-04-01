@@ -46,6 +46,14 @@ feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
 /bc2 **clear**
 
   - clears the list of saved consumes
+  
+/bc2 **vertical**
+
+  - makes the frame vertical
+
+/bc2 **horizontal**
+
+  - makes the frame horizontal
 
 This addon was made by Kaymon \<Scuba Cops> for the Northdale Vanilla private server. If you find
 any bugs or issues with the addon contact him in game or on discord Kaymon#3528.
