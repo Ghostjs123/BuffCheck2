@@ -157,8 +157,15 @@ function BuffCheck2_OnUpdate()
                     if button.consume == active_timer.consume then
                         duration = getglobal("BuffCheck2Button"..i.."Duration")
                         local remainder = floor(active_timer.duration - active_timer.elapsed)
+                        if remainder < 10 then
+                            duration:ClearAllPoints()
+                            duration:SetPoint("LEFT", button, "RIGHT", -20, 2)
+                        else
+                            duration:ClearAllPoints()
+                            duration:SetPoint("LEFT", button, "RIGHT", -25, 2)
+                        end
                         if remainder > 60 then
-                            remainder = floor(remainder / 60)
+                            remainder = floor(remainder / 60 + 0.5)
                             remainder = tostring(remainder) .. "m"
                         end
                         duration:SetText(remainder)

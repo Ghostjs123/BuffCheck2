@@ -59,7 +59,7 @@
                     <Anchors>
                         <Anchor point="LEFT" relativeTo="$parentIcon" relativePoint="RIGHT">
                             <Offset>
-                                <AbsDimension x="-24" y="-0"/>
+                                <AbsDimension x="-25" y="2"/>
                             </Offset>
                         </Anchor>
                     </Anchors>
