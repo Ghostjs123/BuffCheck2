@@ -28,9 +28,9 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
 
     if(args == "") then
         -- print default usage
-        bc2_send_message("Commands:")
-        bc2_send_message("add {ItemLink} - adds the item")
-        bc2_send_message("remove {ItemLink} - removes the item")
+        bc2_send_message("BuffCheck2 Commands:")
+        bc2_send_message("add [ItemLink] - adds the item")
+        bc2_send_message("remove [ItemLink] - removes the item")
         bc2_send_message("lock - locks the frame")
         bc2_send_message("unlock - unlocks the frame")
         bc2_send_message("show - shows the frame")
@@ -126,14 +126,14 @@ function BuffCheck2_OnUpdate()
         timer.since_last_update = timer.since_last_update + arg1
 
         -- check for soon to expire or expire
-        if timer.given_warning == false and timer.duration > 900 and timer.duration - timer.elapsed < 300 then -- 5 minutes
+        if timer.given_warning1 == false and timer.duration - timer.elapsed < 300 then -- 5 minutes
             bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
-            timer.given_warning = true
+            timer.given_warning1 = true
             needs_update = true
-        elseif timer.given_warning == false and timer.duration <= 900 and timer.duration - timer.elapsed < 120 then -- 2 minutes
+        elseif timer.given_warning2 == false and timer.duration - timer.elapsed < 120 then -- 2 minutes
             bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has 2 minutes remaining"))
-            timer.given_warning = true
-            needs_update = true
+            timer.given_warning2 = true
+            needs_update = true -- might not be needed
         elseif timer.elapsed > timer.duration then
             bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
             table.remove(buffcheck2_current_timers, id)
@@ -149,7 +149,7 @@ function BuffCheck2_OnUpdate()
     -- finally update the remaining time on soon to expire consumes
     -- need to wait until the bc2_update_frame() call before doing this so that the consume is in the interface
     for _, active_timer in buffcheck2_current_timers do
-        if active_timer.given_warning then
+        if active_timer.given_warning1 then
             if active_timer.since_last_update > 1 then -- update every second instead of every frame
                 local button, duration
                 for i = 1, table.getn(bc2_current_consumes) do
@@ -242,7 +242,7 @@ function bc2_update_frame()
         -- add the consume to current_consumes if it will expire soon
         elseif has_buff == true and bc2_consume_has_timer(consume) then
             for _, active_timer in buffcheck2_current_timers do
-                if active_timer.given_warning and active_timer.consume == consume then
+                if active_timer.given_warning1 and active_timer.consume == consume then
                     bc2_current_consumes[count] = active_timer.consume
                     count = count + 1
                 end
@@ -253,10 +253,8 @@ function bc2_update_frame()
     -- if the consume is not present and the timer has been active for more than 30 seconds then remove the timer
     local i = table.getn(buffcheck2_current_timers)
     while i > 0 do
-        if bc2_player_has_buff(buffcheck2_current_timers[i].consume) == false then
-            if buffcheck2_current_timers[i].since_last_update > 30 then
-                table.remove(buffcheck2_current_timers, i)
-            end
+        if bc2_player_has_buff(buffcheck2_current_timers[i].consume) == false and buffcheck2_current_timers[i].since_last_update > 30 then
+            table.remove(buffcheck2_current_timers, i)
         end
         i = i - 1
     end
@@ -700,7 +698,8 @@ function bc2_set_expiration_timer(consume)
         for _, active_timer in buffcheck2_current_timers do
             if active_timer.consume == consume then
                 active_timer.elapsed = 0
-                active_timer.given_warning = false
+                active_timer.given_warning1 = false
+                active_timer.given_warning2 = false
             end
         end
     else
@@ -719,7 +718,8 @@ function bc2_set_expiration_timer(consume)
             timer.duration = consume_info.duration
             timer.elapsed = 0
             timer.since_last_update = 0
-            timer.given_warning = false
+            timer.given_warning1 = false
+            timer.given_warning2 = false
 
             if timer.duration ~= 0 then -- don't add consumes w/ duration 0
                 table.insert(buffcheck2_current_timers, timer)
@@ -764,23 +764,14 @@ function bc2_test()
         timer.duration = 10
         timer.elapsed = 0
         timer.since_last_update = 10.1
-        timer.given_warning = false
+        timer.given_warning1 = false
+        timer.given_warning2 = false
         table.insert(buffcheck2_current_timers, timer)
     end
 end
 
 function bc2_test2()
-    -- this can cause errors
-    --buffcheck2_current_timers[1].elapsed = buffcheck2_current_timers[1].duration - 60
-    bc2_set_expiration_timer("Elixir of Superior Defense")
-    bc2_set_expiration_timer("Elixir of Greater Defense")
-    bc2_set_expiration_timer("Scroll of Protection IV")
-    --bc2_tprint(buffcheck2_current_timers)
-    bc2_send_message(table.getn(buffcheck2_current_timers))
-    while(table.getn(buffcheck2_current_timers) > 0) do
-        table.remove(buffcheck2_current_timers, 1)
-    end
-    bc2_send_message(table.getn(buffcheck2_current_timers))
+    bc2_tprint(buffcheck2_current_timers)
 end
 
 --======================================================================================================================
