@@ -12,6 +12,8 @@ buffcheck2_current_timers = {}
 
 bc2_showed_already = false
 
+bc2_backdrop_backup = "empty"
+
 bc2_current_selected_weapon_buff = ""
 bc2_was_spell_targeting = false
 
@@ -376,23 +378,25 @@ function bc2_lock_frame()
     buffcheck2_config["locked"] = true
     BuffCheck2Frame:EnableMouse(false)
     local backdrop = BuffCheck2Frame:GetBackdrop()
-    backdrop["insets"] = { top = 0, bottom = 0, right = 0, left = 0 }
-    backdrop["tile"] = true
-    backdrop["tileSize"] = 1
-    backdrop["edgeSize"] = 1
-    BuffCheck2Frame:SetBackdrop(backdrop)
+    bc2_backdrop_backup = backdrop
+    BuffCheck2Frame:SetBackdrop({})
     bc2_send_message("BuffCheck2 - Interface locked")
 end
 
 function bc2_unlock_frame()
     buffcheck2_config["locked"] = false
     BuffCheck2Frame:EnableMouse(true)
-    local backdrop = BuffCheck2Frame:GetBackdrop()
-    backdrop["insets"] = { top = 12, bottom = 11, right = 12, left = 11 }
-    backdrop["tile"] = true
-    backdrop["tileSize"] = 32
-    backdrop["edgeSize"] = 32
-    BuffCheck2Frame:SetBackdrop(backdrop)
+    if bc2_backdrop_backup ~= "empty" then
+        BuffCheck2Frame:SetBackdrop(bc2_backdrop_backup)
+    else
+        local backdrop = BuffCheck2Frame:GetBackdrop()
+        backdrop["insets"] = { top = 12, bottom = 11, right = 12, left = 11 }
+        backdrop["tile"] = true
+        backdrop["tileSize"] = 32
+        backdrop["edgeSize"] = 32
+        bc2_backdrop_backup = backdrop
+        BuffCheck2Frame:SetBackdrop(backdrop)
+    end
     bc2_send_message("BuffCheck2 - Interface unlocked")
 end
 
