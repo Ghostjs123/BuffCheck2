@@ -101,6 +101,7 @@ function BuffCheck2_OnEvent(event)
     elseif(event == "BAG_UPDATE") then
         bc2_update_bag_contents()
         bc2_update_item_counts()
+        bc2_set_item_cooldowns()
     end
 end
 
@@ -293,8 +294,6 @@ function bc2_update_frame()
         BuffCheck2Frame:SetWidth(54 + (table.getn(bc2_current_consumes) - 1) * 36)
         BuffCheck2Frame:SetHeight(54)
     end
-
-    bc2_set_item_cooldowns()
 end
 
 --======================================================================================================================
@@ -832,8 +831,6 @@ function bc2_add_item_to_interface(consume, index, is_timer)
 
             button.consume = consume
         end
-
-        return
     else
         button = getglobal("BuffCheck2Button1")
         icon = getglobal("BuffCheck2Button1Icon")
