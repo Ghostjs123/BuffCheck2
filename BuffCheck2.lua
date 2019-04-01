@@ -962,6 +962,7 @@ function bc2_weapon_button_onclick(id)
 end
 
 function bc2_show_tooltip(id)
+    local is_weapon = false
     local consume = bc2_item_buffs[bc2_current_consumes[id]]
 
     if consume == nil then
@@ -972,6 +973,7 @@ function bc2_show_tooltip(id)
         consume = bc2_weapon_buffs[bc2_current_consumes[id]]
         if consume then
             bc2_show_weapon_buttons(id)
+            is_weapon = true
         end
     end
 
@@ -979,7 +981,11 @@ function bc2_show_tooltip(id)
         local _, link = GetItemInfo(consume.id)
         -- the only time this will be nil is if the interface has a consume in it that is not in the players wdb
         if link ~= nil then
-            GameTooltip:SetOwner(getglobal("BuffCheck2Button"..id), "ANCHOR_BOTTOMRIGHT")
+            if is_weapon then
+                GameTooltip:SetOwner(getglobal("BuffCheck2WeaponButton2"), "ANCHOR_BOTTOMRIGHT")
+            else
+                GameTooltip:SetOwner(getglobal("BuffCheck2Button"..id), "ANCHOR_BOTTOMRIGHT")
+            end
             GameTooltip:SetHyperlink(link)
             GameTooltip:Show()
         end
