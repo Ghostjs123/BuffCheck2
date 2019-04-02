@@ -445,8 +445,10 @@ end
 
 function bc2_check_group_update()
     if(UnitInRaid("player") == 1 and bc2_showed_already == false) then
-        bc2_show_frame()
-        bc2_showed_already = true
+        if BuffCheck2Frame:IsVisible() ~= true then
+            bc2_show_frame()
+            bc2_showed_already = true
+        end
     end
 end
 
@@ -986,7 +988,12 @@ function bc2_show_tooltip(id)
         -- the only time this will be nil is if the interface has a consume in it that is not in the players wdb
         if link ~= nil then
             if is_weapon then
-                GameTooltip:SetOwner(getglobal("BuffCheck2WeaponButton2"), "ANCHOR_BOTTOMRIGHT")
+                local offHandTexture = GetInventoryItemTexture("player", GetInventorySlotInfo("SecondaryHandSlot"))
+                if offHandTexture then
+                    GameTooltip:SetOwner(getglobal("BuffCheck2WeaponButton2"), "ANCHOR_BOTTOMRIGHT")
+                else
+                    GameTooltip:SetOwner(getglobal("BuffCheck2WeaponButton1"), "ANCHOR_BOTTOMRIGHT")
+                end
             else
                 GameTooltip:SetOwner(getglobal("BuffCheck2Button"..id), "ANCHOR_BOTTOMRIGHT")
             end
