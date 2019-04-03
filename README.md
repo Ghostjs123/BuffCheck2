@@ -1,7 +1,7 @@
 # **BuffCheck2**
 Wow 1.12 addon to monitor consumes
 
-![alt text](https://i.imgur.com/7aJgBJ4.png)
+![alt text](https://i.imgur.com/hejONHO.png)
 
 **Usage:**<br/>
 Add each consume using the add command below. The interface will only display an icon of 
