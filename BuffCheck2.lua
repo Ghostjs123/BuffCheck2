@@ -511,8 +511,13 @@ function bc2_player_has_buff(buffname)
                 local hasMainHandEnchant, _, _, hasOffHandEnchant, _, _, _, _, _ = GetWeaponEnchantInfo()
                 local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"))
                 local offHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("SecondaryHandSlot"))
-                if bc2_is_enchantable(mainHandLink) and hasMainHandEnchant == nil then
-                    return false
+                local class = UnitClass("player")
+                local faction = UnitFactionGroup("player")
+                -- horde wants windfury on the mh so skip over this
+                if faction == "Horde" and (class == "Warrior" or class == "Rogue") then
+                    if bc2_is_enchantable(mainHandLink) and hasMainHandEnchant == nil then
+                        return false
+                    end
                 end
                 if bc2_is_enchantable(offHandLink) and hasOffHandEnchant == nil then
                     return false
