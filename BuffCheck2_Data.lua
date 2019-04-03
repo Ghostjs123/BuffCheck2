@@ -350,6 +350,10 @@ bc2_food_buffs = {
     ["Runn Tum Tuber Surprise"] = {
         id = 18254,
         duration = 600
+    },
+    ["Dragonbreath Chili"] = {
+        id = 12217,
+        duration = 600
     }
 }
 

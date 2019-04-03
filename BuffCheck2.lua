@@ -19,7 +19,8 @@ bc2_was_spell_targeting = false
 
 food_buff_textures = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
     "Interface\\Icons\\INV_Gauntlets_19", "Interface\\Icons\\Spell_Nature_ManaRegenTotem",
-    "Interface\\Icons\\Spell_Holy_Devotion", "Interface\\Icons\\Spell_Holy_LayOnHands", "Interface\\Icons\\INV_Misc_Organ_03"}
+    "Interface\\Icons\\Spell_Holy_Devotion", "Interface\\Icons\\Spell_Holy_LayOnHands", "Interface\\Icons\\INV_Misc_Organ_03",
+    "Interface\\Icons\\Spell_Fire_Incinerate"}
 
 --======================================================================================================================
 
