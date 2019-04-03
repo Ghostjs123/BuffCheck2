@@ -386,19 +386,19 @@ bc2_weapon_buffs = {
         id = 20748,
         duration = 1800
     },
-    ["Crippling Posion II"] = {
+    ["Crippling Poison II"] = {
         id = 3776,
         duration = 0
     },
-    ["Deadly Posion V"] = {
+    ["Deadly Poison V"] = {
         id = 20844,
         duration = 0
     },
-    ["Deadly Posion IV"] = {
+    ["Deadly Poison IV"] = {
         id = 8985,
         duration = 0
     },
-    ["Instant Posion VI"] = {
+    ["Instant Poison VI"] = {
         id = 8928,
         duration = 0
     },
