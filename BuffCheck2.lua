@@ -149,7 +149,7 @@ function BuffCheck2_OnUpdate()
             if timer.weapon == nil then
                 bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has expired"))
             else
-                bc2_send_message("BuffCheck2: " .. timer.weapon .. string.format(bc2_default_print_format, " has expired on ") .. bc2_item_name_to_item_link(timer.consume))
+                bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has expired on ") .. timer.weapon)
             end
             table.remove(buffcheck2_current_timers, id)
         end
