@@ -16,7 +16,7 @@
                 GameTooltip:Hide()
             </OnLoad>
             <OnClick>
-                bc2_button_onclick(this.consume)
+                bc2_button_onclick(this.consume, this:GetID())
             </OnClick>
             <OnEnter>
                 getglobal(this:GetName().."Highlight"):Show()
@@ -76,7 +76,7 @@
         </Layers>
     </Button>
 
-    <Button name="BuffCheck2WeaponButtonTemplate" virtual="true" enableMouse="true">
+    <Button name="BuffCheck2WeaponButtonTemplate" virtual="true" enableMouse="true" toplevel="true">
         <Size>
             <AbsDimension x="32" y="32"/>
         </Size>
@@ -128,6 +128,41 @@
             </Onload>
         </Scripts>
     </GameTooltip>
+
+    <Frame name="BuffCheck2WeaponFrame" toplevel="true" movable="false" parent="UIParent" enableMouse="true" hidden="true">
+        <TitleRegion setAllPoints="true"/>
+        <Size>
+            <AbsDimension x="68" y="32" />
+        </Size>
+        <Anchors>
+            <Anchor point="CENTER" />
+        </Anchors>
+        <Scripts>
+            <OnLoad>
+                this:SetClampedToScreen(true)
+            </OnLoad>
+        </Scripts>
+        <Frames>
+            <Button name="BuffCheck2WeaponButton1" inherits="BuffCheck2WeaponButtonTemplate" id="1" hidden="true">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2WeaponFrame">
+                        <Offset>
+                            <AbsDimension x="0" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="BuffCheck2WeaponButton2" inherits="BuffCheck2WeaponButtonTemplate" id="2" hidden="true">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2WeaponButton1">
+                        <Offset>
+                            <AbsDimension x="36" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+        </Frames>
+    </Frame>
 
     <Frame name="BuffCheck2Frame" toplevel="true" movable="true" parent="UIParent" enableMouse="true" hidden="false">
         <TitleRegion setAllPoints="true"/>
@@ -382,25 +417,6 @@
             <Button name="BuffCheck2Button25" inherits="BuffCheck2ButtonTemplate" id="25">
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button24">
-                        <Offset>
-                            <AbsDimension x="36" y="0"/>
-                        </Offset>
-                    </Anchor>
-                </Anchors>
-            </Button>
-
-            <Button name="BuffCheck2WeaponButton1" inherits="BuffCheck2WeaponButtonTemplate" id="1" hidden="true">
-                <Anchors>
-                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2Button1">
-                        <Offset>
-                            <AbsDimension x="0" y="-36"/>
-                        </Offset>
-                    </Anchor>
-                </Anchors>
-            </Button>
-            <Button name="BuffCheck2WeaponButton2" inherits="BuffCheck2WeaponButtonTemplate" id="2" hidden="true">
-                <Anchors>
-                    <Anchor point="TOPLEFT" relativeTo="BuffCheck2WeaponButton1">
                         <Offset>
                             <AbsDimension x="36" y="0"/>
                         </Offset>

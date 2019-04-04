@@ -228,6 +228,7 @@ function bc2_init()
 
     if buffcheck2_config["scale"] then
         BuffCheck2Frame:SetScale(buffcheck2_config["scale"] / 100)
+        BuffCheck2WeaponFrame:SetScale(buffcheck2_config["scale"] / 100)
         BuffCheck2Frame:ClearAllPoints()
         BuffCheck2Frame:SetPoint("CENTER", "UIParent")
     end
@@ -960,7 +961,7 @@ function bc2_set_item_cooldowns()
     end
 end
 
-function bc2_button_onclick(consume)
+function bc2_button_onclick(consume, id)
     -- note: bags start at index 0 (Backpack)
     for i = 0, 4 do
         local numberOfSlots = GetContainerNumSlots(i)
@@ -975,6 +976,7 @@ function bc2_button_onclick(consume)
                         bc2_set_expiration_timer(consume)
                     else
                         bc2_current_selected_weapon_buff = consume
+                        bc2_show_weapon_buttons(id)
                     end
                     return
                 end
@@ -985,10 +987,11 @@ end
 
 -- id is the current button being hovered over
 function bc2_show_weapon_buttons(id)
-    local weapon_button_1 = getglobal("BuffCheck2WeaponButton1")
-    weapon_button_1:ClearAllPoints()
-    weapon_button_1:SetPoint("TOPLEFT", getglobal("BuffCheck2Button"..id), "TOPLEFT", 0, -36)
+    local weapon_button_frame = getglobal("BuffCheck2WeaponFrame")
+    weapon_button_frame:ClearAllPoints()
+    weapon_button_frame:SetPoint("TOPLEFT", getglobal("BuffCheck2Button"..id), "TOPLEFT", 0, -36)
 
+    local weapon_button_1 = getglobal("BuffCheck2WeaponButton1")
     local mainHandTexture = GetInventoryItemTexture("player", GetInventorySlotInfo("MainHandSlot"))
     if mainHandTexture then
         local weapon_texture_1 = getglobal("BuffCheck2WeaponButton1Icon")
@@ -1007,11 +1010,14 @@ function bc2_show_weapon_buttons(id)
     else
         weapon_button_2:Hide()
     end
+
+    weapon_button_frame:Show()
 end
 
 function bc2_hide_weapon_buttons()
-    getglobal("BuffCheck2WeaponButton1"):Hide()
-    getglobal("BuffCheck2WeaponButton2"):Hide()
+    getglobal("BuffCheck2WeaponFrame"):Hide()
+    --getglobal("BuffCheck2WeaponButton1"):Hide()
+    --getglobal("BuffCheck2WeaponButton2"):Hide()
 end
 
 -- id is either 1 for mh or 2 for oh
@@ -1045,26 +1051,13 @@ function bc2_show_tooltip(id)
 
     if consume == nil then
         consume = bc2_weapon_buffs[bc2_current_consumes[id]]
-        if consume then
-            bc2_show_weapon_buttons(id)
-            is_weapon = true
-        end
     end
 
     if consume then
         local _, link = GetItemInfo(consume.id)
         -- the only time this will be nil is if the interface has a consume in it that is not in the players wdb
         if link ~= nil then
-            if is_weapon then
-                local offHandTexture = GetInventoryItemTexture("player", GetInventorySlotInfo("SecondaryHandSlot"))
-                if offHandTexture then
-                    GameTooltip:SetOwner(getglobal("BuffCheck2WeaponButton2"), "ANCHOR_BOTTOMRIGHT")
-                else
-                    GameTooltip:SetOwner(getglobal("BuffCheck2WeaponButton1"), "ANCHOR_BOTTOMRIGHT")
-                end
-            else
-                GameTooltip:SetOwner(getglobal("BuffCheck2Button"..id), "ANCHOR_BOTTOMRIGHT")
-            end
+            GameTooltip:SetOwner(getglobal("BuffCheck2Button"..id), "ANCHOR_BOTTOMRIGHT")
             GameTooltip:SetHyperlink(link)
             GameTooltip:Show()
         end
@@ -1110,6 +1103,7 @@ end
 function bc2_scale_interface(scale)
     local map_result = scale / 100
     BuffCheck2Frame:SetScale(map_result)
+    BuffCheck2WeaponFrame:SetScale(map_result)
     BuffCheck2Frame:ClearAllPoints()
     BuffCheck2Frame:SetPoint("CENTER", "UIParent")
     buffcheck2_config["scale"] = scale
