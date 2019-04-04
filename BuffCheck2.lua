@@ -951,8 +951,7 @@ function bc2_set_item_cooldowns()
     end
 end
 
-function bc2_button_onclick(id)
-    local consume = bc2_current_consumes[id]
+function bc2_button_onclick(consume)
     -- note: bags start at index 0 (Backpack)
     for i = 0, 4 do
         local numberOfSlots = GetContainerNumSlots(i)
@@ -963,10 +962,10 @@ function bc2_button_onclick(id)
                 if itemname == consume then
                     UseContainerItem(i, j, 1)
                     bc2_send_message("BuffCheck2: Using " .. itemLink)
-                    if bc2_weapon_buffs[bc2_current_consumes[id]] == nil then -- don't immediatly do this for weapon buffs
-                        bc2_set_expiration_timer(bc2_current_consumes[id])
+                    if bc2_weapon_buffs[consume] == nil then -- don't immediatly do this for weapon buffs
+                        bc2_set_expiration_timer(consume)
                     else
-                        bc2_current_selected_weapon_buff = bc2_current_consumes[id]
+                        bc2_current_selected_weapon_buff = consume
                     end
                     return
                 end

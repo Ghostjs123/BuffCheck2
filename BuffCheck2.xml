@@ -16,7 +16,7 @@
                 GameTooltip:Hide()
             </OnLoad>
             <OnClick>
-                bc2_button_onclick(this:GetID())
+                bc2_button_onclick(this.consume)
             </OnClick>
             <OnEnter>
                 getglobal(this:GetName().."Highlight"):Show()
