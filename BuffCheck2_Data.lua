@@ -299,6 +299,13 @@ bc2_item_buffs = {
         duration = 0
     },
 
+    -- chili
+    ["Dragonbreath Chili"] = {
+        buff_path = "Interface\\Icons\\Spell_Fire_Incinerate",
+        id = 12217,
+        duration = 600
+    },
+
     -- test consume
     ["Juju Flurry"] = {
         buff_path = "Interface\\Icons\\INV_Misc_MonsterScales_17",
@@ -349,10 +356,6 @@ bc2_food_buffs = {
     },
     ["Runn Tum Tuber Surprise"] = {
         id = 18254,
-        duration = 600
-    },
-    ["Dragonbreath Chili"] = {
-        id = 12217,
         duration = 600
     }
 }

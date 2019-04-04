@@ -19,8 +19,7 @@ bc2_was_spell_targeting = false
 
 food_buff_textures = {"Interface\\Icons\\INV_Boots_Plate_03", "Interface\\Icons\\Spell_Misc_Food",
     "Interface\\Icons\\INV_Gauntlets_19", "Interface\\Icons\\Spell_Nature_ManaRegenTotem",
-    "Interface\\Icons\\Spell_Holy_Devotion", "Interface\\Icons\\Spell_Holy_LayOnHands", "Interface\\Icons\\INV_Misc_Organ_03",
-    "Interface\\Icons\\Spell_Fire_Incinerate"}
+    "Interface\\Icons\\Spell_Holy_Devotion", "Interface\\Icons\\Spell_Holy_LayOnHands", "Interface\\Icons\\INV_Misc_Organ_03"}
 
 --======================================================================================================================
 
@@ -566,6 +565,8 @@ function bc2_is_buff_present(texture, spell_name)
             break
         elseif texture == bufftexture then
             if spell_name ~= nil and spell_name ~= "" then
+                BuffCheck2Tooltip:SetOwner(getglobal("BuffCheck2Button1"))
+                BuffCheck2Tooltip:ClearLines()
                 BuffCheck2Tooltip:SetPlayerBuff(x - 1)
                 local name = BuffCheck2TooltipTextLeft1:GetText()
                 if name == spell_name then
@@ -819,11 +820,16 @@ function bc2_test()
     bc2_send_message("bc2_current_consumes")
     bc2_tprint(bc2_current_consumes)]]--
 
-    if buffcheck2_current_timers[2] ~= nil then
+    --[[if buffcheck2_current_timers[2] ~= nil then
         buffcheck2_current_timers[2].elapsed = buffcheck2_current_timers[2].duration - 300
         buffcheck2_current_timers[2].given_warning1 = false
         buffcheck2_current_timers[2].given_warning2 = false
-    end
+    end]]--
+
+    --[[for i = 1, table.getn(bc2_current_consumes) do
+        getglobal("BuffCheck2Button"..i).cooldown(GetTime(), 0)
+    end]]--
+
 end
 
 function bc2_test2()
