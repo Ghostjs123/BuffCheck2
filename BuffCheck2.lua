@@ -98,6 +98,7 @@ function BuffCheck2_OnEvent(event)
         bc2_init()
     elseif(event == "PLAYER_AURAS_CHANGED" or event == "UNIT_INVENTORY_CHANGED") then
         bc2_update_frame()
+        bc2_set_item_cooldowns()
     elseif(event == "PARTY_MEMBERS_CHANGED") then
         bc2_check_group_update()
     elseif(event == "BAG_UPDATE") then
@@ -924,6 +925,14 @@ function bc2_update_item_counts()
 end
 
 function bc2_set_item_cooldowns()
+    local button
+    for i = 1, bc2_button_count do
+        button = getglobal("BuffCheck2Button"..i)
+        if button:IsVisible() then
+            button.cooldown(GetTime(), 0)
+        end
+    end
+
     for i = 0, 4 do
         local numberOfSlots = GetContainerNumSlots(i)
         for j = 1, numberOfSlots do
