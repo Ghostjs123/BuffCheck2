@@ -515,7 +515,7 @@ function bc2_player_has_buff(buffname)
                 local class = UnitClass("player")
                 local faction = UnitFactionGroup("player")
                 -- horde wants windfury on the mh so skip over this
-                if faction == "Horde" and (class == "Warrior" or class == "Rogue") then
+                if faction == "Horde" and (class == "Warrior" or class == "Rogue") or faction == "Alliance" then
                     if bc2_is_enchantable(mainHandLink) and hasMainHandEnchant == nil then
                         return false
                     end
