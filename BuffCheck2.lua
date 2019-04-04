@@ -281,7 +281,7 @@ function bc2_update_frame()
         elseif has_buff == true and bc2_consume_has_timer(consume) then
             for _, active_timer in buffcheck2_current_timers do
                 if active_timer.given_warning1 and active_timer.consume == consume then
-                    if active_timer.weapon == "" then
+                    if active_timer.weapon == nil then
                         bc2_current_consumes[count] = active_timer.consume
                         count = count + 1
                     elseif bc2_weapon_is_equipped(active_timer.weapon) then
@@ -293,14 +293,15 @@ function bc2_update_frame()
         end
     end
 
-    -- if the consume is not present and the timer has been active for more than 30 seconds then remove the timer
-    local i = table.getn(buffcheck2_current_timers)
+    -- todo if the consume is not present and the timer has been active for more than 30 seconds then remove the timer
+    -- cant check for buffs when mind controlled
+    --[[local i = table.getn(buffcheck2_current_timers)
     while i > 0 do
-        if buffcheck2_current_timers[i].weapon == nil and bc2_player_has_buff(buffcheck2_current_timers[i].consume) == false and buffcheck2_current_timers[i].since_last_update > 30 then
+        if buffcheck2_current_timers[i].weapon == "" and bc2_player_has_buff(buffcheck2_current_timers[i].consume) == false and buffcheck2_current_timers[i].since_last_update > 30 then
             table.remove(buffcheck2_current_timers, i)
         end
         i = i - 1
-    end
+    end]]--
 
     -- display the current missing consumes
     count = 1
