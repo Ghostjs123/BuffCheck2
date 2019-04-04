@@ -259,6 +259,10 @@ function bc2_init()
         bc2_change_to_horizontal()
     end
 
+    if table.getn(buffcheck2_saved_consumes) == 0 and not BuffCheck2Frame:IsVisible() then
+        BuffCheck2Frame:Show()
+    end
+
     this:UnregisterEvent("VARIABLES_LOADED")
     bc2_send_message("BuffCheck2 - Init successful")
 end
