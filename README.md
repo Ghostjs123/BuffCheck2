@@ -7,9 +7,11 @@ Wow 1.12 addon to monitor consumes
 Add each consume using the add command below. The interface will only display an icon of 
 the consume when the consume is not active. Right clicking the icon uses the consume. 
 If there is nothing to display the interface will display a placeholder and update again when a consume expires.
+Also gives a five and two minute expiration warning for each consume, then gives another message when the consume expires.<br/>
 
-Also gives a five and two minute expiration warning then gives another message when the consume expires.<br/>
-**Note:** Only creates and refreshes expiration timers for consumes used directly through the interface.
+**Notes:**
+* Only creates and refreshes expiration timers for consumes used directly through the interface.
+* Can only see up to 32 buffs (vanilla limitation). If you try to apply a buff past 32 the addon will not know to remove the icon
 
 Currently supports most* consumes, food buffs, and weapon buffs. If you find one missing
 feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
@@ -52,7 +54,8 @@ feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
 
 /bc2 **horizontal**
 
-  - makes the frame horizontal
-
+  - makes the frame horizontal (default)
+  
+<br/>\
 This addon was made by Kaymon \<Scuba Cops> for the Northdale Vanilla private server. If you find
 any bugs or issues with the addon contact him in game or on discord Kaymon#3528.

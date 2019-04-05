@@ -129,7 +129,7 @@ function BuffCheck2_OnUpdate()
         timer.elapsed = timer.elapsed + arg1
         timer.since_last_update = timer.since_last_update + arg1
 
-        -- check for soon to expire or expire
+        -- check for soon to expire or expired consumes
         if timer.given_warning1 == false and timer.duration - timer.elapsed < 300 then -- 5 minutes
             if timer.weapon == nil then
                 bc2_send_message("BuffCheck2: " .. bc2_item_name_to_item_link(timer.consume) .. string.format(bc2_default_print_format, " has 5 minutes remaining"))
@@ -164,7 +164,6 @@ function BuffCheck2_OnUpdate()
 
     -- finally update the remaining time on soon to expire consumes
     -- need to wait until the bc2_update_frame() call before doing this so that the consume is in the interface
-
     for i = 1, table.getn(bc2_current_consumes) do
         local button = getglobal("BuffCheck2Button"..i)
         local duration = getglobal("BuffCheck2Button"..i.."Duration")
