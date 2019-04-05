@@ -1,4 +1,5 @@
 bc2_default_print_format = "|c00f7f26c%s|r"
+bc2_version = 1.70
 
 buffcheck2_config = {}
 buffcheck2_saved_consumes = {} -- should contain the actual name of the item, not the buff texture
@@ -76,6 +77,8 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
         bc2_test2()
     elseif(string.find(args, "test") ~= nil) then
         bc2_test()
+    elseif(string.find(args, "version") ~= nil) then
+        bc2_print_version()
     else
         bc2_send_message("Unknown arguments, to show usage type /bc2")
     end
@@ -276,13 +279,11 @@ end
 -- bc2_remove_item_from_saved_list(), bc2_show_frame(), bc2_update_frame(), BuffCheck2_OnUpdate()
 
 function bc2_update_frame()
-    -- rebuild the current missing consumes
-    local old_current_consumes = {}
-    for _, consume in bc2_current_consumes do
-        table.insert(old_current_consumes, consume)
-    end
+
     -- clear bc2_current_consumes
     bc2_current_consumes = {}
+
+    -- rebuild the current missing consumes
     for _, consume in buffcheck2_saved_consumes do
         local has_buff = bc2_player_has_buff(consume)
         -- add any missing consumes
@@ -813,6 +814,10 @@ end
 function bc2_test2()
     bc2_send_message("buffcheck2_current_timers:")
     bc2_tprint(buffcheck2_current_timers)
+end
+
+function bc2_print_version()
+    bc2_send_message("BuffCheck2: version " .. bc2_version)
 end
 
 --======================================================================================================================
