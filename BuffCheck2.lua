@@ -164,30 +164,30 @@ function BuffCheck2_OnUpdate()
 
     -- finally update the remaining time on soon to expire consumes
     -- need to wait until the bc2_update_frame() call before doing this so that the consume is in the interface
-    for _, active_timer in buffcheck2_current_timers do
-        if active_timer.given_warning1 then
-            if active_timer.since_last_update > 1 then -- update every second instead of every frame
-                local button, duration
-                for i = 1, table.getn(bc2_current_consumes) do
-                    button = getglobal("BuffCheck2Button"..i)
-                    duration = getglobal("BuffCheck2Button"..i.."Duration")
-                    if button.consume == active_timer.consume then
-                        if bc2_weapon_buffs[button.consume] then
-                            -- dont want to see remaining time on weapons that are not currently equipped
-                            local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"))
-                            local offHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("SecondaryHandSlot"))
-                            if mainHandLink == active_timer.weapon or offHandLink == active_timer.weapon then
-                                bc2_set_button_remaining_time(button, duration, active_timer)
-                            else
-                                duration:SetText("")
-                            end
-                        else
-                            bc2_set_button_remaining_time(button, duration, active_timer)
-                        end
-                    end
-                end
-                active_timer.since_last_update = 0
+
+    for i = 1, table.getn(bc2_current_consumes) do
+        local button = getglobal("BuffCheck2Button"..i)
+        local duration = getglobal("BuffCheck2Button"..i.."Duration")
+        local consume_timer
+        if bc2_weapon_buffs[button.consume] then
+            local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"))
+            consume_timer = bc2_get_consume_timer(button.consume, mainHandLink)
+            if consume_timer == nil then
+                local offHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("SecondaryHandSlot"))
+                consume_timer = bc2_get_consume_timer(button.consume, offHandLink)
             end
+        else
+            consume_timer = bc2_get_consume_timer(button.consume)
+        end
+        if consume_timer ~= nil then
+            if consume_timer.given_warning1 and consume_timer.since_last_update > 1 then
+                if consume_timer.weapon == nil or bc2_weapon_is_equipped(consume_timer.weapon) then
+                    bc2_set_button_remaining_time(button, duration, consume_timer)
+                end
+                consume_timer.since_last_update = 0
+            end
+        else
+            duration:SetText("")
         end
     end
 end
@@ -205,7 +205,11 @@ function bc2_set_button_remaining_time(button, duration, active_timer)
         remainder = floor(remainder / 60 + 0.5)
         remainder = tostring(remainder) .. "m"
     end
-    duration:SetText(remainder)
+    if remainder == 0 then
+        duration:SetText("")
+    else
+        duration:SetText(remainder)
+    end
 end
 
 --======================================================================================================================
@@ -274,32 +278,29 @@ end
 
 function bc2_update_frame()
     -- rebuild the current missing consumes
-    bc2_clear_current_consumes()
-    local count = 1
+    local old_current_consumes = {}
+    for _, consume in bc2_current_consumes do
+        table.insert(old_current_consumes, consume)
+    end
+    -- clear bc2_current_consumes
+    bc2_current_consumes = {}
     for _, consume in buffcheck2_saved_consumes do
         local has_buff = bc2_player_has_buff(consume)
         -- add any missing consumes
         if has_buff == false then
-            bc2_current_consumes[count] = consume
-            count = count + 1
+            table.insert(bc2_current_consumes, consume)
         -- add the consume to current_consumes if it will expire soon
-        elseif has_buff == true and bc2_consume_has_timer(consume) then
-            for _, active_timer in buffcheck2_current_timers do
-                if active_timer.given_warning1 and active_timer.consume == consume then
-                    if active_timer.weapon == nil then
-                        bc2_current_consumes[count] = active_timer.consume
-                        count = count + 1
-                    elseif bc2_weapon_is_equipped(active_timer.weapon) then
-                        bc2_current_consumes[count] = active_timer.consume
-                        count = count + 1
-                    end
+        else
+            local consume_timer = bc2_get_consume_timer(consume)
+            if consume_timer ~= nil and consume_timer.given_warning1 then
+                if consume_timer.weapon == nil or bc2_weapon_is_equipped(consume_timer.weapon) then
+                    table.insert(bc2_current_consumes, consume_timer.consume)
                 end
             end
         end
     end
 
-    -- todo if the consume is not present and the timer has been active for more than 30 seconds then remove the timer
-    -- cant check for buffs when mind controlled
+    -- todo if the consume is not present and the timer has been active for more than 30 seconds then remove the timer, issue is cant check for buffs when mind controlled so all timers get removed
     --[[local i = table.getn(buffcheck2_current_timers)
     while i > 0 do
         if buffcheck2_current_timers[i].weapon == "" and bc2_player_has_buff(buffcheck2_current_timers[i].consume) == false and buffcheck2_current_timers[i].since_last_update > 30 then
@@ -309,14 +310,12 @@ function bc2_update_frame()
     end]]--
 
     -- display the current missing consumes
-    count = 1
-    for _, consume in bc2_current_consumes do
-        bc2_add_item_to_interface(consume, count, bc2_consume_has_timer(consume))
-        count = count + 1
+    for id, consume in bc2_current_consumes do
+        bc2_add_item_to_interface(consume, id)
     end
 
     -- hide the rest of the buttons
-    for i = count, bc2_button_count do
+    for i = table.getn(bc2_current_consumes) + 1, bc2_button_count do
         local button = getglobal("BuffCheck2Button"..i)
         if button:IsVisible() then
             button:Hide()
@@ -474,12 +473,6 @@ function bc2_clear_timers()
     end
 end
 
-function bc2_clear_current_consumes()
-    for k in pairs(bc2_current_consumes) do
-        bc2_current_consumes[k] = nil
-    end
-end
-
 --======================================================================================================================
 
 function bc2_check_group_update()
@@ -520,8 +513,8 @@ function bc2_player_has_buff(buffname)
                 local offHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("SecondaryHandSlot"))
                 local class = UnitClass("player")
                 local faction = UnitFactionGroup("player")
-                -- horde wants windfury on the mh so skip over this
-                if faction == "Horde" and (class == "Warrior" or class == "Rogue") or faction == "Alliance" then
+                -- horde wants windfury on the mh so skip over their wars and rogues
+                if (faction == "Horde" and class ~= "Warrior" and class ~= "Rogue") or faction == "Alliance" then
                     if bc2_is_enchantable(mainHandLink) and hasMainHandEnchant == nil then
                         return false
                     end
@@ -538,7 +531,7 @@ end
 
 function bc2_is_enchantable(itemLink)
     local id = bc2_item_link_to_item_id(itemLink)
-    -- check if you can apply weapon buffs to the item
+    -- check if you can apply weapon buffs to the weapon
     if id ~= nil then
         local _, _, _, _, _, sType, _, _ = GetItemInfo(id)
         if sType == nil then
@@ -553,10 +546,7 @@ end
 function bc2_weapon_is_equipped(itemLink)
     local mainHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("MainHandSlot"))
     local offHandLink = GetInventoryItemLink("player", GetInventorySlotInfo("SecondaryHandSlot"))
-    if mainHandLink == itemLink or offHandLink == itemLink then
-        return true
-    end
-    return false
+    return mainHandLink == itemLink or offHandLink == itemLink
 end
 
 -- called in bc2_player_has_buff()
@@ -571,6 +561,7 @@ function bc2_is_buff_present(texture, spell_name)
             break
         elseif texture == bufftexture then
             if spell_name ~= nil and spell_name ~= "" then
+                BuffCheck2Tooltip:Hide()
                 BuffCheck2Tooltip:SetOwner(getglobal("BuffCheck2Button1"))
                 BuffCheck2Tooltip:ClearLines()
                 BuffCheck2Tooltip:SetPlayerBuff(x - 1)
@@ -756,24 +747,12 @@ end
 
 function bc2_set_expiration_timer(consume, weapon)
     -- if there is already an active timer then reset it
-    if bc2_consume_has_timer(consume, weapon) then
-        for _, active_timer in buffcheck2_current_timers do
-            if weapon ~= nil then
-                if active_timer.consume == consume and active_timer.weapon == weapon then
-                    active_timer.elapsed = 0
-                    active_timer.given_warning1 = false
-                    active_timer.given_warning2 = false
-                    active_timer.since_last_update = 0
-                end
-            else
-                if active_timer.consume == consume then
-                    active_timer.elapsed = 0
-                    active_timer.given_warning1 = false
-                    active_timer.given_warning2 = false
-                    active_timer.since_last_update = 0
-                end
-            end
-        end
+    local consume_timer = bc2_get_consume_timer(consume, weapon)
+    if consume_timer ~= nil then
+        consume_timer.elapsed = 0
+        consume_timer.given_warning1 = false
+        consume_timer.given_warning2 = false
+        consume_timer.since_last_update = 0
     else
         -- otherwise make a new timer
         local consume_info
@@ -803,19 +782,13 @@ end
 
 --======================================================================================================================
 
-function bc2_consume_has_timer(consume, weapon)
+function bc2_get_consume_timer(consume, weapon)
     for _, active_timer in buffcheck2_current_timers do
-        if weapon == nil then
-            if active_timer.consume == consume then
-                return true
-            end
-        else
-            if active_timer.consume == consume and active_timer.weapon == weapon then
-                return true
-            end
+        if (weapon == nil and active_timer.consume == consume) or (active_timer.weapon == weapon and active_timer.consume == consume) then
+            return active_timer
         end
     end
-    return false
+    return nil
 end
 
 --======================================================================================================================
@@ -826,11 +799,11 @@ function bc2_test()
     bc2_send_message("bc2_current_consumes")
     bc2_tprint(bc2_current_consumes)]]--
 
-    --[[if buffcheck2_current_timers[2] ~= nil then
-        buffcheck2_current_timers[2].elapsed = buffcheck2_current_timers[2].duration - 300
-        buffcheck2_current_timers[2].given_warning1 = false
-        buffcheck2_current_timers[2].given_warning2 = false
-    end]]--
+    if buffcheck2_current_timers[1] ~= nil then
+        buffcheck2_current_timers[1].elapsed = buffcheck2_current_timers[1].duration - 300
+        buffcheck2_current_timers[1].given_warning1 = false
+        buffcheck2_current_timers[1].given_warning2 = false
+    end
 
     --[[for i = 1, table.getn(bc2_current_consumes) do
         getglobal("BuffCheck2Button"..i).cooldown(GetTime(), 0)
@@ -850,7 +823,7 @@ end
 -- GUI specific functions
 
 
-function bc2_add_item_to_interface(consume, index, is_timer)
+function bc2_add_item_to_interface(consume, index)
     local button, icon, count, duration
     if consume ~= "Interface\\Icons\\Spell_Nature_WispSplode" then
         button = getglobal("BuffCheck2Button"..index)
@@ -876,19 +849,6 @@ function bc2_add_item_to_interface(consume, index, is_timer)
                 count:SetPoint("LEFT", button, "RIGHT", -16, -10)
             else
                 count:SetPoint("LEFT", button, "RIGHT", -10, -10)
-            end
-            if is_timer == true then -- the consume is still active but close to expiration
-                local highlight = getglobal("BuffCheck2Button"..index.."Highlight")
-                if not dont_lock_highlight then
-                    highlight:Show()
-                    button.lockedHighlight = true
-                end
-            else
-                local highlight = getglobal("BuffCheck2Button"..index.."Highlight")
-                local duration = getglobal("BuffCheck2Button"..index.."Duration")
-                highlight:Hide()
-                duration:SetText("")
-                button.lockedHighlight = false
             end
             button:Show()
 
@@ -948,7 +908,7 @@ function bc2_set_item_cooldowns()
                     local button = getglobal("BuffCheck2Button"..k)
                     if button.consume == itemname then
                         -- it was putting near expiration consumes on gcd when abilities were used
-                        if not bc2_consume_has_timer(itemname) then
+                        if bc2_get_consume_timer(itemname) == nil then
                             local starttime, duration, _ = GetContainerItemCooldown(i, j)
                             button.cooldown(starttime, duration)
                         end
@@ -975,7 +935,7 @@ function bc2_button_onclick(consume, id)
                 local itemname = bc2_item_link_to_item_name(itemLink)
                 if itemname == consume then
                     UseContainerItem(i, j, 1)
-                    bc2_send_message("BuffCheck2: Using " .. itemLink)
+                    --bc2_send_message("BuffCheck2: Using " .. itemLink)
                     if bc2_weapon_buffs[consume] == nil then -- don't immediatly do this for weapon buffs
                         bc2_set_expiration_timer(consume)
                     else
