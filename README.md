@@ -58,4 +58,5 @@ feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
   
 <br/>\
 This addon was made by Kaymon \<Scuba Cops> for the Northdale Vanilla private server. If you find
-any bugs or issues with the addon contact him in game or on discord Kaymon#3528.
+any bugs or issues with the addon contact him in game or on discord Kaymon#3528.<br/>
+Extra thanks to Zela <Scuba Cops> for code assistance and Talesavo <Salad Bakers/Reign> for finding bugs.
