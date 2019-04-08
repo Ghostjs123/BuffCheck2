@@ -561,14 +561,15 @@ function bc2_is_buff_present(texture, spell_name)
             break
         elseif texture == bufftexture then
             if spell_name ~= nil and spell_name ~= "" then
-                BuffCheck2Tooltip:Hide()
                 BuffCheck2Tooltip:SetOwner(getglobal("BuffCheck2Button1"))
                 BuffCheck2Tooltip:ClearLines()
                 BuffCheck2Tooltip:SetPlayerBuff(x - 1)
                 local name = BuffCheck2TooltipTextLeft1:GetText()
                 if name == spell_name then
+                    BuffCheck2Tooltip:Hide()
                     return true
                 end
+                BuffCheck2Tooltip:Hide()
             else
                 return true
             end
