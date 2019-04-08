@@ -1,5 +1,5 @@
 bc2_default_print_format = "|c00f7f26c%s|r"
-bc2_version = 1.70
+bc2_version = 1.72
 
 buffcheck2_config = {}
 buffcheck2_saved_consumes = {} -- should contain the actual name of the item, not the buff texture
@@ -578,14 +578,15 @@ function bc2_is_buff_present(texture, spell_name)
             break
         elseif texture == bufftexture then
             if spell_name ~= nil and spell_name ~= "" then
-                BuffCheck2Tooltip:Hide()
                 BuffCheck2Tooltip:SetOwner(getglobal("BuffCheck2Button1"))
                 BuffCheck2Tooltip:ClearLines()
                 BuffCheck2Tooltip:SetPlayerBuff(x - 1)
                 local name = BuffCheck2TooltipTextLeft1:GetText()
                 if name == spell_name then
+                    BuffCheck2Tooltip:Hide()
                     return true
                 end
+                BuffCheck2Tooltip:Hide()
             else
                 return true
             end
@@ -801,7 +802,7 @@ end
 
 function bc2_get_consume_timer(consume, weapon)
     for _, active_timer in buffcheck2_current_timers do
-        if (weapon == nil and active_timer.consume == consume) or (active_timer.weapon == weapon and active_timer.consume == consume) then
+        if (weapon == nil and active_timer.consume == consume) or (weapon ~= nil and active_timer.weapon == weapon and active_timer.consume == consume) then
             return active_timer
         end
     end
@@ -821,11 +822,6 @@ function bc2_test()
         buffcheck2_current_timers[1].given_warning1 = false
         buffcheck2_current_timers[1].given_warning2 = false
     end
-
-    --[[for i = 1, table.getn(bc2_current_consumes) do
-        getglobal("BuffCheck2Button"..i).cooldown(GetTime(), 0)
-    end]]--
-
 end
 
 function bc2_test2()
@@ -850,16 +846,13 @@ function bc2_add_item_to_interface(consume, index)
         button = getglobal("BuffCheck2Button"..index)
         icon = getglobal("BuffCheck2Button"..index.."Icon")
         count = getglobal("BuffCheck2Button"..index.."Count")
-        local texture, dont_lock_highlight
+        local texture
         if bc2_item_buffs[consume] then
             texture = bc2_GetTextureByID(bc2_item_buffs[consume].id)
-            dont_lock_highlight = false
         elseif bc2_food_buffs[consume] then
             texture = bc2_GetTextureByID(bc2_food_buffs[consume].id)
-            dont_lock_highlight = false
         elseif bc2_weapon_buffs[consume] then
             texture = bc2_GetTextureByID(bc2_weapon_buffs[consume].id)
-            dont_lock_highlight = true
         end
         if texture then
             icon:SetTexture(texture)
@@ -919,29 +912,20 @@ function bc2_set_item_cooldowns()
         end
     end
 
-    for i = 0, 4 do
-        local numberOfSlots = GetContainerNumSlots(i)
-        for j = 1, numberOfSlots do
-            local itemLink = GetContainerItemLink(i, j)
-            if(itemLink ~= nil) then
-                local itemname = bc2_item_link_to_item_name(itemLink)
-                for k = 1, table.getn(bc2_current_consumes) do
-                    local button = getglobal("BuffCheck2Button"..k)
+    for i = 1, table.getn(bc2_current_consumes) do
+        local button = getglobal("BuffCheck2Button"..i)
+        if bc2_bag_contents[button.consume] > 0 then
+            for j = 1, 4 do
+                for k = 1, GetContainerNumSlots(j) do
+                    local itemname = bc2_item_link_to_item_name(GetContainerItemLink(j, k))
                     if button.consume == itemname then
-                        -- it was putting near expiration consumes on gcd when abilities were used
                         if bc2_get_consume_timer(itemname) == nil then
-                            local starttime, duration, _ = GetContainerItemCooldown(i, j)
+                            local starttime, duration, _ = GetContainerItemCooldown(j, k)
                             button.cooldown(starttime, duration)
                         end
                     end
                 end
             end
-        end
-    end
-
-    for i = 1, table.getn(bc2_current_consumes) do
-        if bc2_bag_contents[bc2_current_consumes[i]] == 0 then
-            getglobal("BuffCheck2Button"..i).cooldown(GetTime(), 0)
         end
     end
 end
