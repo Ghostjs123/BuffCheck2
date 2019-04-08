@@ -42,6 +42,7 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
         bc2_send_message("clear - clears the saved list of consumes")
         bc2_send_message("vertical - makes the frame vertical")
         bc2_send_message("horizontal - makes the frame horizontal")
+        bc2_send_message("flip - flips the order that consumes appear in")
     elseif(string.find(args, "add") ~= nil) then
         local item_name = bc2_get_item_name_from_args(args)
         if(item_name == nil) then
@@ -73,6 +74,8 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
         bc2_change_to_vertical()
     elseif(string.find(args, "horizontal") ~= nil) then
         bc2_change_to_horizontal()
+    elseif(string.find(args, "flip") ~= nil) then
+        bc2_flip_frame_order()
     elseif(string.find(args, "test2") ~= nil) then
         bc2_test2()
     elseif(string.find(args, "test") ~= nil) then
@@ -329,10 +332,24 @@ function bc2_update_frame()
         BuffCheck2Frame:SetHeight(54)
     elseif buffcheck2_config["orientation"] == "vertical" then
         BuffCheck2Frame:SetWidth(54)
+        local oldHeight = BuffCheck2Frame:GetHeight()
         BuffCheck2Frame:SetHeight(54 + (table.getn(bc2_current_consumes) - 1) * 36)
+        if buffcheck2_config["flipped"] then
+            local x = BuffCheck2Frame:GetLeft()
+            local y = BuffCheck2Frame:GetBottom()
+            BuffCheck2Frame:ClearAllPoints()
+            BuffCheck2Frame:SetPoint("BOTTOMLEFT", x, y - (BuffCheck2Frame:GetHeight() - oldHeight))
+        end
     else
+        local oldWidth = BuffCheck2Frame:GetWidth()
         BuffCheck2Frame:SetWidth(54 + (table.getn(bc2_current_consumes) - 1) * 36)
         BuffCheck2Frame:SetHeight(54)
+        if buffcheck2_config["flipped"] then
+            local x = BuffCheck2Frame:GetLeft()
+            local y = BuffCheck2Frame:GetBottom()
+            BuffCheck2Frame:ClearAllPoints()
+            BuffCheck2Frame:SetPoint("BOTTOMLEFT", x - (BuffCheck2Frame:GetWidth() - oldWidth), y)
+        end
     end
 end
 
@@ -1100,6 +1117,17 @@ function bc2_change_to_horizontal()
     end
     BuffCheck2Frame:SetWidth(54 + (table.getn(bc2_current_consumes) - 1) * 36)
     BuffCheck2Frame:SetHeight(54)
+end
+
+function bc2_flip_frame_order()
+    if buffcheck2_config["flipped"] == nil then
+        buffcheck2_config["flipped"] = true
+    elseif buffcheck2_config["flipped"] == true then
+        buffcheck2_config["flipped"] = false
+    else -- false
+        buffcheck2_config["flipped"] = true
+    end
+    bc2_send_message("BuffCheck2: flipped orientation")
 end
 
 --======================================================================================================================
