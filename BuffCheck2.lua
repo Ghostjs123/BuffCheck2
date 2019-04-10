@@ -326,6 +326,7 @@ function bc2_update_frame()
     end
 
     -- if no missing consumes display the placeholder and resize the frame
+    -- note: the frame's width and height only resize in one direction, so if flipped I am moving the entire frame as well
     if table.getn(bc2_current_consumes) == 0 then
         bc2_add_item_to_interface("Interface\\Icons\\Spell_Nature_WispSplode")
         BuffCheck2Frame:SetWidth(54)
@@ -340,7 +341,7 @@ function bc2_update_frame()
             BuffCheck2Frame:ClearAllPoints()
             BuffCheck2Frame:SetPoint("BOTTOMLEFT", x, y - (BuffCheck2Frame:GetHeight() - oldHeight))
         end
-    else
+    else -- horizontal
         local oldWidth = BuffCheck2Frame:GetWidth()
         BuffCheck2Frame:SetWidth(54 + (table.getn(bc2_current_consumes) - 1) * 36)
         BuffCheck2Frame:SetHeight(54)
@@ -497,6 +498,10 @@ function bc2_check_group_update()
         if(UnitInRaid("player") == 1 and bc2_showed_already == false) then
             bc2_show_frame()
             bc2_showed_already = true
+        end
+    elseif BuffCheck2Frame:IsVisible() == true then
+        if(UnitInRaid("player") ~= 1 and bc2_showed_already == true) then
+            bc2_hide_frame()
         end
     end
 end

@@ -318,7 +318,8 @@ bc2_item_buffs = {
 
 -- duration of 0 means the addon will not give an expiration warning in chat
 
--- buff_path is not needed bc all resulting textures are in food_buff_textures in BuffCheck2.lua
+-- buff_path is not needed bc all resulting textures are in food_buff_textures in BuffCheck2.lua and all of these
+-- items are non-stacking
 
 bc2_food_buffs = {
     -- food buffs todo add more
