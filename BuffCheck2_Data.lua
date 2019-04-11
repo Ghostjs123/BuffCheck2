@@ -306,6 +306,13 @@ bc2_item_buffs = {
         duration = 600
     },
 
+    -- un'goro buff
+    ["Crystal Spire"] = {
+        buff_path = "Interface\\Icons\\INV_Misc_Gem_Stone_01",
+        id = 11567,
+        duration = 600
+    },
+
     -- test consume
     ["Juju Flurry"] = {
         buff_path = "Interface\\Icons\\INV_Misc_MonsterScales_17",
