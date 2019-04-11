@@ -306,6 +306,13 @@ bc2_item_buffs = {
         duration = 600
     },
 
+    -- un'goro buff
+    ["Crystal Spire"] = {
+        buff_path = "Interface\\Icons\\INV_Misc_Gem_Stone_01",
+        id = 11567,
+        duration = 600
+    },
+
     -- test consume
     ["Juju Flurry"] = {
         buff_path = "Interface\\Icons\\INV_Misc_MonsterScales_17",
@@ -318,7 +325,8 @@ bc2_item_buffs = {
 
 -- duration of 0 means the addon will not give an expiration warning in chat
 
--- buff_path is not needed bc all resulting textures are in food_buff_textures in BuffCheck2.lua
+-- buff_path is not needed bc all resulting textures are in food_buff_textures in BuffCheck2.lua and all of these
+-- items are non-stacking
 
 bc2_food_buffs = {
     -- food buffs todo add more

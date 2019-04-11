@@ -10,7 +10,7 @@ If there is nothing to display the interface will display a placeholder and upda
 Also gives a five and two minute expiration warning for each consume, then gives another message when the consume expires.<br/>
 
 **Notes:**
-* Only creates and refreshes expiration timers for consumes used directly through the interface.
+* Only creates and refreshes expiration timers for consumes used directly through the interface
 * Can only see up to 32 buffs (vanilla limitation). If you try to apply a buff past 32 the addon will not know to remove the icon
 
 Currently supports most* consumes, food buffs, and weapon buffs. If you find one missing
@@ -55,6 +55,10 @@ feel free to add it to BuffCheck2_Data.lua or contact me to have it added.
 /bc2 **horizontal**
 
   - makes the frame horizontal (default)
+  
+/bc2 **flip**
+
+  - flips the order that consumes appear in
   
 <br/>\
 This addon was made by Kaymon \<Scuba Cops> for the Northdale Vanilla private server. If you find

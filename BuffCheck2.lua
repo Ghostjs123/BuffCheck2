@@ -1,5 +1,5 @@
 bc2_default_print_format = "|c00f7f26c%s|r"
-bc2_version = 1.70
+bc2_version = 1.72
 
 buffcheck2_config = {}
 buffcheck2_saved_consumes = {} -- should contain the actual name of the item, not the buff texture
@@ -42,6 +42,7 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
         bc2_send_message("clear - clears the saved list of consumes")
         bc2_send_message("vertical - makes the frame vertical")
         bc2_send_message("horizontal - makes the frame horizontal")
+        bc2_send_message("flip - flips the order that consumes appear in")
     elseif(string.find(args, "add") ~= nil) then
         local item_name = bc2_get_item_name_from_args(args)
         if(item_name == nil) then
@@ -73,6 +74,8 @@ function SlashCmdList.BUFFCHECK(args) -- for some reason if I do .BUFFCHECK2 it 
         bc2_change_to_vertical()
     elseif(string.find(args, "horizontal") ~= nil) then
         bc2_change_to_horizontal()
+    elseif(string.find(args, "flip") ~= nil) then
+        bc2_flip_frame_order()
     elseif(string.find(args, "test2") ~= nil) then
         bc2_test2()
     elseif(string.find(args, "test") ~= nil) then
@@ -323,16 +326,31 @@ function bc2_update_frame()
     end
 
     -- if no missing consumes display the placeholder and resize the frame
+    -- note: the frame's width and height only resize in one direction, so if flipped I am moving the entire frame as well
     if table.getn(bc2_current_consumes) == 0 then
         bc2_add_item_to_interface("Interface\\Icons\\Spell_Nature_WispSplode")
         BuffCheck2Frame:SetWidth(54)
         BuffCheck2Frame:SetHeight(54)
     elseif buffcheck2_config["orientation"] == "vertical" then
         BuffCheck2Frame:SetWidth(54)
+        local oldHeight = BuffCheck2Frame:GetHeight()
         BuffCheck2Frame:SetHeight(54 + (table.getn(bc2_current_consumes) - 1) * 36)
-    else
+        if buffcheck2_config["flipped"] then
+            local x = BuffCheck2Frame:GetLeft()
+            local y = BuffCheck2Frame:GetBottom()
+            BuffCheck2Frame:ClearAllPoints()
+            BuffCheck2Frame:SetPoint("BOTTOMLEFT", x, y - (BuffCheck2Frame:GetHeight() - oldHeight))
+        end
+    else -- horizontal
+        local oldWidth = BuffCheck2Frame:GetWidth()
         BuffCheck2Frame:SetWidth(54 + (table.getn(bc2_current_consumes) - 1) * 36)
         BuffCheck2Frame:SetHeight(54)
+        if buffcheck2_config["flipped"] then
+            local x = BuffCheck2Frame:GetLeft()
+            local y = BuffCheck2Frame:GetBottom()
+            BuffCheck2Frame:ClearAllPoints()
+            BuffCheck2Frame:SetPoint("BOTTOMLEFT", x - (BuffCheck2Frame:GetWidth() - oldWidth), y)
+        end
     end
 end
 
@@ -480,6 +498,10 @@ function bc2_check_group_update()
         if(UnitInRaid("player") == 1 and bc2_showed_already == false) then
             bc2_show_frame()
             bc2_showed_already = true
+        end
+    elseif BuffCheck2Frame:IsVisible() == true then
+        if(UnitInRaid("player") ~= 1 and bc2_showed_already == true) then
+            bc2_hide_frame()
         end
     end
 end
@@ -785,7 +807,7 @@ end
 
 function bc2_get_consume_timer(consume, weapon)
     for _, active_timer in buffcheck2_current_timers do
-        if (weapon == nil and active_timer.consume == consume) or (active_timer.weapon == weapon and active_timer.consume == consume) then
+        if (weapon == nil and active_timer.consume == consume) or (weapon ~= nil and active_timer.weapon == weapon and active_timer.consume == consume) then
             return active_timer
         end
     end
@@ -805,11 +827,6 @@ function bc2_test()
         buffcheck2_current_timers[1].given_warning1 = false
         buffcheck2_current_timers[1].given_warning2 = false
     end
-
-    --[[for i = 1, table.getn(bc2_current_consumes) do
-        getglobal("BuffCheck2Button"..i).cooldown(GetTime(), 0)
-    end]]--
-
 end
 
 function bc2_test2()
@@ -834,16 +851,13 @@ function bc2_add_item_to_interface(consume, index)
         button = getglobal("BuffCheck2Button"..index)
         icon = getglobal("BuffCheck2Button"..index.."Icon")
         count = getglobal("BuffCheck2Button"..index.."Count")
-        local texture, dont_lock_highlight
+        local texture
         if bc2_item_buffs[consume] then
             texture = bc2_GetTextureByID(bc2_item_buffs[consume].id)
-            dont_lock_highlight = false
         elseif bc2_food_buffs[consume] then
             texture = bc2_GetTextureByID(bc2_food_buffs[consume].id)
-            dont_lock_highlight = false
         elseif bc2_weapon_buffs[consume] then
             texture = bc2_GetTextureByID(bc2_weapon_buffs[consume].id)
-            dont_lock_highlight = true
         end
         if texture then
             icon:SetTexture(texture)
@@ -1101,6 +1115,17 @@ function bc2_change_to_horizontal()
     end
     BuffCheck2Frame:SetWidth(54 + (table.getn(bc2_current_consumes) - 1) * 36)
     BuffCheck2Frame:SetHeight(54)
+end
+
+function bc2_flip_frame_order()
+    if buffcheck2_config["flipped"] == nil then
+        buffcheck2_config["flipped"] = true
+    elseif buffcheck2_config["flipped"] == true then
+        buffcheck2_config["flipped"] = false
+    else -- false
+        buffcheck2_config["flipped"] = true
+    end
+    bc2_send_message("BuffCheck2: flipped orientation")
 end
 
 --======================================================================================================================

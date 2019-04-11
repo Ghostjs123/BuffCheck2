@@ -121,7 +121,7 @@
         </Layers>
     </Button>
 
-    <GameTooltip name="BuffCheck2Tooltip" frameStrata="TOOLTIP" hidden="false" parent="UIParent" inherits="GameTooltipTemplate">
+    <GameTooltip name="BuffCheck2Tooltip" frameStrata="TOOLTIP" hidden="true" parent="UIParent" inherits="GameTooltipTemplate">
         <Scripts>
             <Onload>
                     this:SetOwner(WorldFrame, "ANCHOR_NONE")
