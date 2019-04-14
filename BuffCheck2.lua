@@ -801,6 +801,17 @@ function bc2_set_expiration_timer(consume, weapon)
             end
         end
     end
+
+    -- if the consume is a food buff, then remove the timer for all other food buffs
+    if bc2_food_buffs[consume] ~= nil then
+        local i = table.getn(buffcheck2_current_timers)
+        while i > 0 do
+            if buffcheck2_current_timers[i].consume ~= consume and bc2_food_buffs[buffcheck2_current_timers[i].consume] ~= nil then
+                table.remove(buffcheck2_current_timers, i)
+            end
+            i = i - 1
+        end
+    end
 end
 
 --======================================================================================================================
